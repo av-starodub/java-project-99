@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: ${JDBC_DATABASE_URL}
+    username: ${USERNAME}
+    password: ${PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql: WARN

@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;MODE=PostgreSQL"
+    username:
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  output:
+    ansi:
+      enabled: always
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
