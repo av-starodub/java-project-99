@@ -1,7 +1,7 @@
 spring:
   datasource:
     url: ${JDBC_DATABASE_URL}
-    username: ${USERNAME}
+    username: ${USER_NAME}
     password: ${PASSWORD}
 
   jpa:
