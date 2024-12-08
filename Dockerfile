@@ -2,6 +2,7 @@ FROM gradle:8.11.1-jdk21 AS build
 
 WORKDIR /backend
 
+COPY config config
 COPY gradle gradle
 COPY gradlew .
 COPY build.gradle.kts .
@@ -13,9 +14,11 @@ COPY src src
 
 RUN ./gradlew --no-daemon build
 
-FROM openjdk:21-jdk
+FROM eclipse-temurin:21-jdk
 
 WORKDIR /backend
+
+RUN apt-get update && apt-get install -y sudo
 
 COPY --from=build /backend/build/libs/app-0.0.1-SNAPSHOT.jar .
 
