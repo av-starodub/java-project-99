@@ -6,6 +6,7 @@ plugins {
     application
     checkstyle
     jacoco
+    id("com.github.ben-manes.versions") version "0.48.0"
     id("io.freefair.lombok") version "8.6"
     id("org.springframework.boot") version "3.4.0"
     id("io.spring.dependency-management") version "1.1.6"
@@ -39,16 +40,26 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springframework.boot:spring-boot-configuration-processor")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     implementation("com.h2database:h2:2.2.224")
     implementation("org.postgresql:postgresql:42.7.2")
 
+    implementation("org.instancio:instancio-junit:5.2.0")
+    implementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.0")
+    implementation("net.datafaker:datafaker:2.4.2")
 
-    compileOnly("org.projectlombok:lombok")
-    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.openapitools:jackson-databind-nullable:0.2.6")
+    implementation("org.mapstruct:mapstruct:1.6.3")
+    implementation("org.mapstruct:mapstruct-processor:1.6.3")
+
+/*    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")*/
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
