@@ -24,7 +24,7 @@ public final class UserService {
                 .firstName(createDto.getFirstName())
                 .lastName(createDto.getLastName())
                 .email(createDto.getEmail())
-                .password(passwordHash)
+                .passwordHash(passwordHash)
                 .build();
         System.out.println("Created user: " + user.toString());
         return Optional.of(userRepository.save(user));

@@ -40,7 +40,7 @@ public final class User {
     private String email;
 
     @Column(nullable = false)
-    private String password;
+    private String passwordHash;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

@@ -6,26 +6,41 @@ import lombok.Getter;
 import net.datafaker.Faker;
 import org.instancio.Instancio;
 import org.instancio.Model;
-import org.instancio.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static org.instancio.Select.field;
 
 @Getter
 @Component
 public class ModelGenerator {
 
-    private Model<UserCreateDto> userCreateDto;
+    private Model<UserCreateDto> userData;
+
+    private Model<UserCreateDto> userDataWithoutRequiredFields;
+
+    private Model<UserCreateDto> userDataWithInvalidEmailAndPassword;
 
     @Autowired
     private Faker faker;
 
-
     @PostConstruct
     private void init() {
 
-        userCreateDto = Instancio.of(UserCreateDto.class)
-                .supply(Select.field(UserCreateDto::getEmail), () -> faker.internet().emailAddress())
+        userData = Instancio.of(UserCreateDto.class)
+                .supply(field(UserCreateDto::getEmail), () -> faker.internet().emailAddress())
                 .toModel();
+
+        userDataWithoutRequiredFields = Instancio.of(UserCreateDto.class)
+                .ignore(field(UserCreateDto::getEmail))
+                .ignore(field(UserCreateDto::getPassword))
+                .toModel();
+
+        userDataWithInvalidEmailAndPassword = Instancio.of(UserCreateDto.class)
+                .set(field(UserCreateDto::getEmail), "invalid email")
+                .set(field(UserCreateDto::getPassword), "12")
+                .toModel();
+
     }
 
 }
