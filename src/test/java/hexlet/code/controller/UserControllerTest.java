@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -200,5 +201,12 @@ public final class UserControllerTest {
                 .andExpect(jsonPath("$.details[?(@ == 'User with id=" + invalidId + " not found')]").exists());
     }
 
+    @Test
+    @DisplayName("Should handle DELETE /users/{id} correctly")
+    public void checkDeleteById() throws Exception {
+        mvc.perform(delete("/api/users/" + testUser.getId()))
+                .andExpect(status().isNoContent());
+        assertThat(userRepository.findById(testUser.getId())).isEmpty();
+    }
 
 }

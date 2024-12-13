@@ -14,6 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,6 +58,12 @@ public final class UserController {
         return userService.getById(id)
                 .map(this::userToDto)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id=%d not found".formatted(id)));
+    }
+
+    @DeleteMapping("/users/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        userService.deleteById(id);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
