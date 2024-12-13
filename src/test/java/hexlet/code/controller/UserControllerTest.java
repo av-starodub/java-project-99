@@ -2,6 +2,7 @@ package hexlet.code.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.repository.UserRepository;
+import hexlet.code.service.UserService;
 import hexlet.code.util.ModelGenerator;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,9 +18,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,6 +46,9 @@ public final class UserControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private BCryptPasswordEncoder encoder;
 
     @BeforeEach
@@ -53,7 +59,7 @@ public final class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Should create new User correctly")
+    @DisplayName("Should create new User correctly on POST /users with valid user input")
     public void checkCreateUser() throws Exception {
         var inputUserData = Instancio.of(modelGenerator.getUserData()).create();
 
@@ -68,7 +74,7 @@ public final class UserControllerTest {
                 .andExpect(jsonPath("$.createdAt").isNotEmpty())
                 .andExpect(jsonPath("$.updatedAt").isNotEmpty());
 
-        var newUser = userRepository.findByEmail(inputUserData.getEmail()).orElse(null);
+        var newUser = userService.getByEmail(inputUserData.getEmail()).orElse(null);
         assertThat(newUser).isNotNull();
         assertThat(encoder.matches(inputUserData.getPassword(), newUser.getPasswordHash())).isTrue();
         assertThat(newUser)
@@ -125,6 +131,28 @@ public final class UserControllerTest {
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@ == 'Email is required')]").exists())
                 .andExpect(jsonPath("$.details[?(@ == 'Password is required')]").exists());
+    }
+
+    @Test
+    @DisplayName("Should return all saved users on GET /users")
+    public void checkGetAllUsers() throws Exception {
+        var testUser = Instancio.of(modelGenerator.getUserModel()).create();
+        userRepository.save(testUser);
+
+        var expectedUsers = userService.getAll();
+        var testUserIdx = expectedUsers.indexOf(testUser);
+        Function<String, String> toPath = (key) -> "$[%d].%s".formatted(testUserIdx, key);
+
+        mvc.perform(get("/api/users"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(expectedUsers.size()))
+                .andExpect(jsonPath(toPath.apply("id")).isNotEmpty())
+                .andExpect(jsonPath(toPath.apply("firstName")).value(testUser.getFirstName()))
+                .andExpect(jsonPath(toPath.apply("lastName")).value(testUser.getLastName()))
+                .andExpect(jsonPath(toPath.apply("email")).value(testUser.getEmail()))
+                .andExpect(jsonPath(toPath.apply("createdAt")).isNotEmpty())
+                .andExpect(jsonPath(toPath.apply("updatedAt")).isNotEmpty())
+                .andExpect(jsonPath(toPath.apply("password")).doesNotExist());
     }
 
 }
