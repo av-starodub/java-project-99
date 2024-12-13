@@ -19,7 +19,7 @@ public final class UserService {
 
     private final BCryptPasswordEncoder encoder;
 
-    public Optional<User> create(UserCreateDto createDto) {
+    public User create(UserCreateDto createDto) {
         var passwordHash = encoder.encode(createDto.getPassword());
         var user = User.builder()
                 .firstName(createDto.getFirstName())
@@ -27,7 +27,7 @@ public final class UserService {
                 .email(createDto.getEmail())
                 .passwordHash(passwordHash)
                 .build();
-        return Optional.of(userRepository.save(user));
+        return userRepository.save(user);
     }
 
     public List<User> getAll() {
@@ -38,4 +38,7 @@ public final class UserService {
         return userRepository.findByEmail(email);
     }
 
+    public Optional<User> getById(Long id) {
+        return userRepository.findById(id);
+    }
 }

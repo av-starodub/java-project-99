@@ -3,16 +3,20 @@ package hexlet.code.controller;
 import hexlet.code.dto.ErrorDto;
 import hexlet.code.dto.UserCreateDto;
 import hexlet.code.dto.UserDto;
+import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.model.User;
 import hexlet.code.service.UserService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -42,12 +46,18 @@ public final class UserController {
 
     @PostMapping("/users")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@Valid @RequestBody UserCreateDto createDto) {
-        var newUser = userService.create(createDto)
-                .orElseThrow(() -> new RuntimeException("User creation failed"));
+    public UserDto create(@Valid @RequestBody UserCreateDto createDto) {
+        var newUser = userService.create(createDto);
         return userToDto(newUser);
     }
 
+    @GetMapping("/users/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDto show(@PathVariable Long id) {
+        return userService.getById(id)
+                .map(this::userToDto)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id=%d not found".formatted(id)));
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -56,6 +66,18 @@ public final class UserController {
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .toList();
         return new ErrorDto("Validation failed", details);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorDto handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return new ErrorDto("Resource not found", List.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDto handleDataIntegrityViolation(DataIntegrityViolationException ignoredEx) {
+        return new ErrorDto("Constraint violation", List.of("Email must be unique"));
     }
 
     private UserDto userToDto(User user) {
