@@ -7,7 +7,7 @@ import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public final class UserService {
 
     private final UserRepository userRepository;
 
-    private final BCryptPasswordEncoder encoder;
+    private final PasswordEncoder encoder;
 
     public User create(UserCreateDto createDto) {
         var passwordHash = encoder.encode(createDto.getPassword());

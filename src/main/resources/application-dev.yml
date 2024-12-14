@@ -4,6 +4,10 @@ spring:
     username:
     password:
 
+  h2:
+    console:
+      enabled: true
+
   jpa:
     hibernate:
       ddl-auto: update
