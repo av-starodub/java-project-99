@@ -39,6 +39,8 @@ public class ModelGenerator {
 
         userModel = Instancio.of(User.class)
                 .ignore(field(User::getId))
+                .ignore(field(User::getCreatedAt))
+                .ignore(field(User::getUpdatedAt))
                 .set(field(User::getPasswordHash), encoder.encode("password"))
                 .supply(field(User::getEmail), () -> faker.internet().emailAddress())
                 .toModel();
