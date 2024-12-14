@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -24,6 +25,8 @@ import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -58,11 +61,15 @@ public final class UserControllerTest {
 
     private User testUser;
 
+    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
+
     @BeforeEach
     void setUp() {
         mvc = MockMvcBuilders.webAppContextSetup(wac)
                 .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
+                .apply(springSecurity())
                 .build();
+        token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
         testUser = Instancio.of(modelGenerator.getUserModel()).create();
         userRepository.save(testUser);
     }
@@ -73,6 +80,7 @@ public final class UserControllerTest {
         var inputUserData = Instancio.of(modelGenerator.getUserData()).create();
 
         var request = post("/api/users")
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(inputUserData));
         mvc.perform(request)
@@ -99,6 +107,7 @@ public final class UserControllerTest {
         var invalidInputData = Instancio.of(modelGenerator.getUserDataWithoutRequiredFields()).create();
 
         var badRequest = post("/api/users")
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidInputData));
 
@@ -118,6 +127,7 @@ public final class UserControllerTest {
         ).create();
 
         var badRequest = post("/api/users")
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidInputData));
 
@@ -135,11 +145,13 @@ public final class UserControllerTest {
         var inputUserData = Instancio.of(modelGenerator.getUserData()).create();
 
         var request = post("/api/users")
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(inputUserData));
         mvc.perform(request).andExpect(status().isCreated());
 
         var badRequest = post("/api/users")
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(inputUserData));
         mvc.perform(badRequest)
@@ -153,6 +165,7 @@ public final class UserControllerTest {
     @DisplayName("Should handle no request body correctly")
     void checkCreateNoRequestBody() throws Exception {
         mvc.perform(post("/api/users")
+                        .with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())
@@ -169,7 +182,8 @@ public final class UserControllerTest {
         var testUserIdx = expectedUsers.indexOf(testUser);
         Function<String, String> toPath = (key) -> "$[%d].%s".formatted(testUserIdx, key);
 
-        mvc.perform(get("/api/users"))
+        var request = get("/api/users").with(token);
+        mvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(userRepository.count()))
                 .andExpect(jsonPath(toPath.apply("id")).isNotEmpty())
@@ -184,7 +198,8 @@ public final class UserControllerTest {
     @Test
     @DisplayName("Should return user by 'id' on GET /users/{id}")
     void checkShowById() throws Exception {
-        mvc.perform(get("/api/users/" + testUser.getId()))
+        var request = get("/api/users/" + testUser.getId()).with(token);
+        mvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value(testUser.getFirstName()))
                 .andExpect(jsonPath("$.lastName").value(testUser.getLastName()))
@@ -197,7 +212,8 @@ public final class UserControllerTest {
     @DisplayName("Should handle GET /users/{id} when user not found correctly")
     void checkShowByIdNotFound() throws Exception {
         var invalidId = Long.MAX_VALUE;
-        mvc.perform(get("/api/users/" + invalidId))
+        var request = get("/api/users/" + invalidId).with(token);
+        mvc.perform(request)
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Resource not found"))
                 .andExpect(jsonPath("$.details").isArray())
@@ -207,7 +223,8 @@ public final class UserControllerTest {
     @Test
     @DisplayName("Should handle DELETE /users/{id} correctly")
     void checkDeleteById() throws Exception {
-        mvc.perform(delete("/api/users/" + testUser.getId()))
+        var request = delete("/api/users/" + testUser.getId()).with(token);
+        mvc.perform(request)
                 .andExpect(status().isNoContent());
         assertThat(userRepository.findById(testUser.getId())).isEmpty();
     }
@@ -218,6 +235,7 @@ public final class UserControllerTest {
         var updatedUserData = Instancio.of(modelGenerator.getUserUpdatedData()).create();
 
         var request = put("/api/users/" + testUser.getId())
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updatedUserData));
 
@@ -254,6 +272,7 @@ public final class UserControllerTest {
         ).create();
 
         var badRequest = put("/api/users/" + testUser.getId())
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidDataForUpdate));
 
@@ -272,6 +291,7 @@ public final class UserControllerTest {
         var invalidId = Long.MAX_VALUE;
 
         var request = put("/api/users/" + invalidId)
+                .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updatedUserData));
 
