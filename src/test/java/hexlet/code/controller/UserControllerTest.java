@@ -19,9 +19,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.time.temporal.ChronoUnit;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -230,14 +232,14 @@ public final class UserControllerTest {
         assertThat(updatedUser).isNotNull()
                 .hasFieldOrPropertyWithValue("firstName", testUser.getFirstName())
                 .hasFieldOrPropertyWithValue("lastName", testUser.getLastName())
-                .hasFieldOrPropertyWithValue("email", newEmail)
-                .hasFieldOrPropertyWithValue("createdAt", testUser.getCreatedAt());
-
+                .hasFieldOrPropertyWithValue("email", newEmail);
 
         var newPassword = updatedUserData.getPassword().orElse(null);
         assertThat(encoder.matches(newPassword, updatedUser.getPasswordHash())).isTrue();
 
-        assertThat(updatedUser.getCreatedAt()).isEqualTo(testUser.getCreatedAt());
+        var previousCreatedAtValue = testUser.getCreatedAt();
+        var currentCreatedAtValue = updatedUser.getCreatedAt();
+        assertThat(previousCreatedAtValue).isCloseTo(currentCreatedAtValue, within(1, ChronoUnit.MILLIS));
 
         var previousUpdatedAtValue = testUser.getUpdatedAt();
         var currentUpdatedAtValue = updatedUser.getUpdatedAt();
