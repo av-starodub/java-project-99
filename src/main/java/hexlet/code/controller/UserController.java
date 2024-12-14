@@ -3,6 +3,7 @@ package hexlet.code.controller;
 import hexlet.code.dto.ErrorDto;
 import hexlet.code.dto.UserCreateDto;
 import hexlet.code.dto.UserDto;
+import hexlet.code.dto.UserUpdateDto;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.model.User;
 import hexlet.code.service.UserService;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,6 +66,14 @@ public final class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         userService.deleteById(id);
+    }
+
+    @PutMapping("/users/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDto update(@PathVariable Long id, @Valid @RequestBody UserUpdateDto updateDto) {
+        return userService.update(id, updateDto)
+                .map(this::userToDto)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id=%d not found".formatted(id)));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

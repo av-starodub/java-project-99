@@ -1,6 +1,7 @@
 package hexlet.code.util;
 
 import hexlet.code.dto.UserCreateDto;
+import hexlet.code.dto.UserUpdateDto;
 import hexlet.code.model.User;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -24,6 +25,8 @@ public class ModelGenerator {
     private Model<UserCreateDto> userDataWithoutRequiredFields;
 
     private Model<UserCreateDto> userDataWithInvalidEmailAndPassword;
+
+    private Model<UserUpdateDto> userUpdatedData;
 
     @Autowired
     private Faker faker;
@@ -54,6 +57,12 @@ public class ModelGenerator {
                 .set(field(UserCreateDto::getPassword), "12")
                 .toModel();
 
+        userUpdatedData = Instancio.of(UserUpdateDto.class)
+                .ignore(field(UserUpdateDto::getFirstName))
+                .ignore(field(UserUpdateDto::getLastName))
+                .set(field(UserUpdateDto::getPassword), encoder.encode("updated_password"))
+                .set(field(UserUpdateDto::getEmail), faker.internet().emailAddress())
+                .toModel();
     }
 
 }

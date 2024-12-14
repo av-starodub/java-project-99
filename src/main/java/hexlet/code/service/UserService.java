@@ -2,8 +2,10 @@ package hexlet.code.service;
 
 import hexlet.code.dto.UserCreateDto;
 
+import hexlet.code.dto.UserUpdateDto;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,4 +48,19 @@ public final class UserService {
         userRepository.deleteById(id);
     }
 
+    public Optional<User> update(Long id, @Valid UserUpdateDto updateDto) {
+        return getById(id)
+                .map(user -> updateData(user, updateDto))
+                .map(userRepository::save);
+    }
+
+    private User updateData(User user, UserUpdateDto updateDto) {
+        return User.builder()
+                .id(user.getId())
+                .firstName(updateDto.getFirstName().orElse(user.getFirstName()))
+                .lastName(updateDto.getLastName().orElse(user.getLastName()))
+                .email(updateDto.getEmail().orElse(user.getEmail()))
+                .passwordHash(updateDto.getPassword().map(encoder::encode).orElse(user.getPasswordHash()))
+                .build();
+    }
 }
