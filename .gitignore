@@ -14,8 +14,8 @@ build/
 .springBeans
 .sts4-cache
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+!**src/main/**/bin/
+!**gi/src/test/**/bin/
 
 ### IntelliJ IDEA ###
 .idea
@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### frontend ###
+src/main/resources/static/**
+!src/main/resources/static/.gitkeep
+
+node_modules
