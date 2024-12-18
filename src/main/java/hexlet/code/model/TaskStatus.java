@@ -26,7 +26,15 @@ import java.time.LocalDateTime;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "task_statuses")
-public class TaskStatus {
+public final class TaskStatus {
+
+    public static final int NAME_MIN_LENGTH = 1;
+
+    public static final int SLUG_MIN_LENGTH = 1;
+
+    public static final String NAME_SIZE_ERROR_MESSAGE = "Name must be at least " + NAME_MIN_LENGTH + " character long";
+
+    public static final String SLUG_SIZE_ERROR_MESSAGE = "Slug must be at least " + SLUG_MIN_LENGTH + " character long";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,4 +50,8 @@ public class TaskStatus {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Override
+    public String toString() {
+        return "TaskStatus{id=%d, name=%s, slug=%s, createdAt=%s}".formatted(id, name, slug, createdAt);
+    }
 }
