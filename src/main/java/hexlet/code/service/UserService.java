@@ -1,8 +1,8 @@
 package hexlet.code.service;
 
-import hexlet.code.dto.UserCreateDto;
+import hexlet.code.dto.user.UserCreateDto;
 
-import hexlet.code.dto.UserUpdateDto;
+import hexlet.code.dto.user.UserUpdateDto;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
 import jakarta.validation.Valid;

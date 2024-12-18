@@ -1,6 +1,6 @@
 package hexlet.code.controller;
 
-import hexlet.code.dto.AuthRequestDto;
+import hexlet.code.dto.user.AuthRequestDto;
 import hexlet.code.dto.ErrorDto;
 import hexlet.code.util.JwtUtils;
 import jakarta.validation.Valid;

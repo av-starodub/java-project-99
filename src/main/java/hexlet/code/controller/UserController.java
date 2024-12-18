@@ -1,9 +1,9 @@
 package hexlet.code.controller;
 
 import hexlet.code.dto.ErrorDto;
-import hexlet.code.dto.UserCreateDto;
-import hexlet.code.dto.UserDto;
-import hexlet.code.dto.UserUpdateDto;
+import hexlet.code.dto.user.UserCreateDto;
+import hexlet.code.dto.user.UserDto;
+import hexlet.code.dto.user.UserUpdateDto;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.model.User;
 import hexlet.code.service.UserService;

@@ -1,6 +1,6 @@
 package hexlet.code.component;
 
-import hexlet.code.dto.UserCreateDto;
+import hexlet.code.dto.user.UserCreateDto;
 import hexlet.code.exception.ApplicationInitializationException;
 import hexlet.code.repository.UserRepository;
 import hexlet.code.service.UserService;
