@@ -5,7 +5,6 @@ import hexlet.code.dto.user.UserCreateDto;
 import hexlet.code.dto.user.UserUpdateDto;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,7 +47,7 @@ public final class UserService {
         userRepository.deleteById(id);
     }
 
-    public Optional<User> update(Long id, @Valid UserUpdateDto updateDto) {
+    public Optional<User> update(Long id, UserUpdateDto updateDto) {
         return getById(id)
                 .map(user -> updateData(user, updateDto))
                 .map(userRepository::save);
