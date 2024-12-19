@@ -2,9 +2,8 @@ package hexlet.code.dto.status;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import static hexlet.code.model.TaskStatus.NAME_MIN_LENGTH;
 import static hexlet.code.model.TaskStatus.NAME_SIZE_ERROR_MESSAGE;
@@ -12,8 +11,7 @@ import static hexlet.code.model.TaskStatus.SLUG_MIN_LENGTH;
 import static hexlet.code.model.TaskStatus.SLUG_SIZE_ERROR_MESSAGE;
 
 @Getter
-@Setter
-@AllArgsConstructor
+@Builder
 public final class TaskStatusCreateDto {
 
 

@@ -24,15 +24,15 @@ public final class TaskStatusService {
         return repo.save(status);
     }
 
-    public Optional<TaskStatus> getById(String id) {
-        return repo.findBySlug(id);
+    public Optional<TaskStatus> getById(Long id) {
+        return repo.findById(id);
     }
 
     public Optional<TaskStatus> getBySlug(String slug) {
         return repo.findBySlug(slug);
     }
 
-    public List<TaskStatus> getAll(String id) {
+    public List<TaskStatus> getAll() {
         return repo.findAll();
     }
 
@@ -40,8 +40,8 @@ public final class TaskStatusService {
         repo.deleteById(id);
     }
 
-    public Optional<TaskStatus> update(TaskStatusUpdateDto updateDto, Long id) {
-        return repo.findById(id)
+    public Optional<TaskStatus> update(Long id, TaskStatusUpdateDto updateDto) {
+        return getById(id)
                 .map(taskStatus -> updateData(taskStatus, updateDto))
                 .map(repo::save);
     }
