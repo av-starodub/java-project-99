@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public final class TaskStatusDto {
+public final class StatusResponseDto {
 
     private Long id;
 

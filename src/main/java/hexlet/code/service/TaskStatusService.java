@@ -1,7 +1,7 @@
 package hexlet.code.service;
 
-import hexlet.code.dto.status.TaskStatusCreateDto;
-import hexlet.code.dto.status.TaskStatusUpdateDto;
+import hexlet.code.dto.status.StatusCreateDto;
+import hexlet.code.dto.status.StatusUpdateDto;
 import hexlet.code.exception.UniquenessViolationException;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskStatusRepository;
@@ -18,7 +18,7 @@ public final class TaskStatusService {
 
     private final TaskStatusRepository repo;
 
-    public TaskStatus create(TaskStatusCreateDto taskStatus) {
+    public TaskStatus create(StatusCreateDto taskStatus) {
         var name = taskStatus.getName();
         var slug = taskStatus.getSlug();
 
@@ -54,7 +54,7 @@ public final class TaskStatusService {
         repo.deleteById(id);
     }
 
-    public Optional<TaskStatus> update(Long id, TaskStatusUpdateDto updateDto) {
+    public Optional<TaskStatus> update(Long id, StatusUpdateDto updateDto) {
         var errorDetails = new ArrayList<String>();
         updateDto.getName().ifPresent(name -> validateName(name, errorDetails));
         updateDto.getSlug().ifPresent(slug -> validateSlug(slug, errorDetails));
@@ -80,7 +80,7 @@ public final class TaskStatusService {
         }
     }
 
-    private TaskStatus updateData(TaskStatus taskStatus, TaskStatusUpdateDto updateDto) {
+    private TaskStatus updateData(TaskStatus taskStatus, StatusUpdateDto updateDto) {
         return TaskStatus.builder()
                 .id(taskStatus.getId())
                 .name(updateDto.getName().orElse(taskStatus.getName()))

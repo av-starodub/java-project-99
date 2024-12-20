@@ -3,8 +3,8 @@ package hexlet.code.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import hexlet.code.component.DataInitializer;
-import hexlet.code.dto.status.TaskStatusCreateDto;
-import hexlet.code.dto.status.TaskStatusUpdateDto;
+import hexlet.code.dto.status.StatusCreateDto;
+import hexlet.code.dto.status.StatusUpdateDto;
 import hexlet.code.model.DefaultTaskStatusType;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskStatusRepository;
@@ -105,7 +105,7 @@ public final class TaskStatusControllerTest {
     @Test
     @DisplayName("Should handle valid POST to create TaskStatus correctly")
     void checkCreateTaskStatus() throws Exception {
-        var statusCreateDto = TaskStatusCreateDto.builder()
+        var statusCreateDto = StatusCreateDto.builder()
                 .name(testStatus.getName())
                 .slug(testStatus.getSlug())
                 .build();
@@ -167,7 +167,7 @@ public final class TaskStatusControllerTest {
         assertThat(savedStatus).isNotNull();
 
         var savedStatusId = savedStatus.getId();
-        var updateDto = TaskStatusUpdateDto.builder()
+        var updateDto = StatusUpdateDto.builder()
                 .slug("update")
                 .build();
         var request = put("/api/task_statuses/" + savedStatusId)
@@ -212,7 +212,7 @@ public final class TaskStatusControllerTest {
     @Test
     @DisplayName("Should handle invalid POST to create TaskStatus correctly")
     void checkCreateWithInvalidData() throws Exception {
-        var invalidData = TaskStatusCreateDto.builder()
+        var invalidData = StatusCreateDto.builder()
                 .slug("")
                 .build();
 
@@ -238,7 +238,7 @@ public final class TaskStatusControllerTest {
         assertThat(savedStatus).isNotNull();
 
         var savedStatusId = savedStatus.getId();
-        var invalidData = TaskStatusUpdateDto.builder()
+        var invalidData = StatusUpdateDto.builder()
                 .slug("")
                 .build();
 
@@ -266,7 +266,7 @@ public final class TaskStatusControllerTest {
 
         var duplicateName = testStatus.getName();
         var duplicateSlug = testStatus.getSlug();
-        var duplicateStatusCreateDto = TaskStatusCreateDto.builder()
+        var duplicateStatusCreateDto = StatusCreateDto.builder()
                 .name(duplicateName)
                 .slug(duplicateSlug)
                 .build();
@@ -296,7 +296,7 @@ public final class TaskStatusControllerTest {
         assertThat(savedStatus).isNotNull();
 
         var duplicateSlug = testStatus.getSlug();
-        var duplicateStatusCreateDto = TaskStatusCreateDto.builder()
+        var duplicateStatusCreateDto = StatusCreateDto.builder()
                 .slug(duplicateSlug)
                 .build();
 

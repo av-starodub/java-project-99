@@ -1,8 +1,8 @@
 package hexlet.code.controller;
 
-import hexlet.code.dto.status.TaskStatusCreateDto;
-import hexlet.code.dto.status.TaskStatusDto;
-import hexlet.code.dto.status.TaskStatusUpdateDto;
+import hexlet.code.dto.status.StatusCreateDto;
+import hexlet.code.dto.status.StatusResponseDto;
+import hexlet.code.dto.status.StatusUpdateDto;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.service.TaskStatusService;
@@ -31,13 +31,13 @@ public final class TaskStatusController {
 
     @PostMapping("/task_statuses")
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskStatusDto create(@Valid @RequestBody TaskStatusCreateDto createDto) {
+    public StatusResponseDto create(@Valid @RequestBody StatusCreateDto createDto) {
         var newStatus = taskStatusService.create(createDto);
         return statusToDto(newStatus);
     }
 
     @GetMapping("/task_statuses")
-    public ResponseEntity<List<TaskStatusDto>> index() {
+    public ResponseEntity<List<StatusResponseDto>> index() {
         var statuses = taskStatusService.getAll();
         var statusDtos = statuses.stream()
                 .map(this::statusToDto)
@@ -49,14 +49,14 @@ public final class TaskStatusController {
 
     @GetMapping("/task_statuses/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public TaskStatusDto show(@PathVariable Long id) {
+    public StatusResponseDto show(@PathVariable Long id) {
         return taskStatusService.getById(id)
                 .map(this::statusToDto)
                 .orElseThrow(() -> new ResourceNotFoundException("TaskStatus with id=%d not found".formatted(id)));
     }
 
-    private TaskStatusDto statusToDto(TaskStatus taskStatus) {
-        return TaskStatusDto.builder()
+    private StatusResponseDto statusToDto(TaskStatus taskStatus) {
+        return StatusResponseDto.builder()
                 .id(taskStatus.getId())
                 .name(taskStatus.getName())
                 .slug(taskStatus.getSlug())
@@ -72,7 +72,7 @@ public final class TaskStatusController {
 
     @PutMapping("/task_statuses/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public TaskStatusDto update(@PathVariable Long id, @Valid @RequestBody TaskStatusUpdateDto updateDto) {
+    public StatusResponseDto update(@PathVariable Long id, @Valid @RequestBody StatusUpdateDto updateDto) {
         return taskStatusService.update(id, updateDto)
                 .map(this::statusToDto)
                 .orElseThrow(() -> new ResourceNotFoundException("TaskStatus with id=%d not found".formatted(id)));
