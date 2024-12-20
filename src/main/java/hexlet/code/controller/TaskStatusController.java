@@ -4,13 +4,13 @@ import hexlet.code.dto.ErrorDto;
 import hexlet.code.dto.status.TaskStatusCreateDto;
 import hexlet.code.dto.status.TaskStatusDto;
 import hexlet.code.dto.status.TaskStatusUpdateDto;
+import hexlet.code.exception.DuplicateTaskStatusException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.service.TaskStatusService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -98,10 +98,10 @@ public final class TaskStatusController {
         return new ErrorDto("Validation failed", details);
     }
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ExceptionHandler(DuplicateTaskStatusException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorDto handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        return new ErrorDto("Constraint violation", List.of("Parameters name and slug must be unique"));
+    public ErrorDto handleDataIntegrityViolation(DuplicateTaskStatusException ex) {
+        return new ErrorDto("Constraint violation", ex.getDetails());
     }
 
 }

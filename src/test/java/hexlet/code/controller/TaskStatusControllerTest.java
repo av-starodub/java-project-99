@@ -264,9 +264,11 @@ public final class TaskStatusControllerTest {
         var savedStatus = repository.save(testStatus);
         assertThat(savedStatus).isNotNull();
 
+        var duplicateName = testStatus.getName();
+        var duplicateSlug = testStatus.getSlug();
         var duplicateStatusCreateDto = TaskStatusCreateDto.builder()
-                .name(testStatus.getName())
-                .slug(testStatus.getSlug())
+                .name(duplicateName)
+                .slug(duplicateSlug)
                 .build();
 
         var badRequest = post("/api/task_statuses")
@@ -278,7 +280,8 @@ public final class TaskStatusControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Constraint violation"))
                 .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == 'Parameters name and slug must be unique')]").exists());
+                .andExpect(jsonPath("$.details[?(@ == 'Name " + duplicateName + " already exist')]").exists())
+                .andExpect(jsonPath("$.details[?(@ == 'Slug " + duplicateSlug + " already exist')]").exists());
 
         var expectedSlug = testStatus.getSlug();
         var actualStatus = taskStatusService.getBySlug(expectedSlug).orElse(null);
@@ -286,5 +289,30 @@ public final class TaskStatusControllerTest {
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("id", savedStatus.getId());
     }
+    @Test
+    @DisplayName("Should handle invalid PUT to update TaskStatus with duplicate slug correctly")
+    void checkUpdateWithDuplicateSlug() throws Exception {
+        var savedStatus = repository.save(testStatus);
+        assertThat(savedStatus).isNotNull();
 
+        var duplicateSlug = testStatus.getSlug();
+        var duplicateStatusCreateDto = TaskStatusCreateDto.builder()
+                .slug(duplicateSlug)
+                .build();
+
+        var badRequest = put("/api/task_statuses/" + savedStatus.getId())
+                .with(token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(duplicateStatusCreateDto));
+
+        mvc.perform(badRequest)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Constraint violation"))
+                .andExpect(jsonPath("$.details").isArray())
+                .andExpect(jsonPath("$.details[?(@ == 'Slug " + duplicateSlug + " already exist')]").exists());
+
+        var expectedSlug = testStatus.getSlug();
+        var actualStatus = taskStatusService.getBySlug(expectedSlug).orElse(null);
+        assertThat(actualStatus).isNotNull();
+    }
 }
