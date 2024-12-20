@@ -26,4 +26,6 @@ public class UserCreateDto {
     @Size(min = MIN_PASSWORD_LENGTH, message = "Password must be at least 3 characters long")
     private String password;
 
+
+
 }

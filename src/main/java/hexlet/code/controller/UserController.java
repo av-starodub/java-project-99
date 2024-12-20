@@ -1,10 +1,10 @@
 package hexlet.code.controller;
 
 import hexlet.code.dto.user.UserCreateDto;
-import hexlet.code.dto.user.UserDto;
+import hexlet.code.dto.user.UserResponseDto;
 import hexlet.code.dto.user.UserUpdateDto;
 import hexlet.code.exception.ResourceNotFoundException;
-import hexlet.code.model.User;
+import hexlet.code.mapper.UserMapper;
 import hexlet.code.service.UserService;
 
 import jakarta.validation.Valid;
@@ -30,12 +30,14 @@ public final class UserController {
 
     private final UserService userService;
 
+    private final UserMapper userMapper;
+
     @GetMapping("/users")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<UserDto>> index() {
+    public ResponseEntity<List<UserResponseDto>> index() {
         var users = userService.getAll();
         var userDtos = users.stream()
-                .map(this::userToDto)
+                .map(userMapper::domainTo)
                 .toList();
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(userDtos.size()))
@@ -44,16 +46,16 @@ public final class UserController {
 
     @PostMapping("/users")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(@Valid @RequestBody UserCreateDto createDto) {
+    public UserResponseDto create(@Valid @RequestBody UserCreateDto createDto) {
         var newUser = userService.create(createDto);
-        return userToDto(newUser);
+        return userMapper.domainTo(newUser);
     }
 
     @GetMapping("/users/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDto show(@PathVariable Long id) {
+    public UserResponseDto show(@PathVariable Long id) {
         return userService.getById(id)
-                .map(this::userToDto)
+                .map(userMapper::domainTo)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id=%d not found".formatted(id)));
     }
 
@@ -65,21 +67,10 @@ public final class UserController {
 
     @PutMapping("/users/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDto update(@PathVariable Long id, @Valid @RequestBody UserUpdateDto updateDto) {
+    public UserResponseDto update(@PathVariable Long id, @Valid @RequestBody UserUpdateDto updateDto) {
         return userService.update(id, updateDto)
-                .map(this::userToDto)
+                .map(userMapper::domainTo)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id=%d not found".formatted(id)));
-    }
-
-    private UserDto userToDto(User user) {
-        return UserDto.builder()
-                .id(user.getId())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .build();
     }
 
 }
