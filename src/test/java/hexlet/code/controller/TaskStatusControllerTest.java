@@ -223,7 +223,7 @@ public final class TaskStatusControllerTest {
 
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.error").value("Input data validation failed"))
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@ == 'Name is required')]").exists())
                 .andExpect(jsonPath("$.details[?(@ == '" + TaskStatus.SLUG_SIZE_ERROR_MESSAGE + "')]").exists());
@@ -249,7 +249,7 @@ public final class TaskStatusControllerTest {
 
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.error").value("Input data validation failed"))
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@ == '" + TaskStatus.SLUG_SIZE_ERROR_MESSAGE + "')]").exists());
 
@@ -278,7 +278,7 @@ public final class TaskStatusControllerTest {
 
         mvc.perform(badRequest)
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Constraint violation"))
+                .andExpect(jsonPath("$.error").value("Uniqueness violation"))
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@ == 'Name " + duplicateName + " already exist')]").exists())
                 .andExpect(jsonPath("$.details[?(@ == 'Slug " + duplicateSlug + " already exist')]").exists());
@@ -307,7 +307,7 @@ public final class TaskStatusControllerTest {
 
         mvc.perform(badRequest)
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Constraint violation"))
+                .andExpect(jsonPath("$.error").value("Uniqueness violation"))
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@ == 'Slug " + duplicateSlug + " already exist')]").exists());
 

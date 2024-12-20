@@ -200,7 +200,7 @@ public final class UserControllerTest {
 
         mvc.perform(badRequest)
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.error").value("Input data validation failed"))
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@ == 'Email is required')]").exists())
                 .andExpect(jsonPath("$.details[?(@ == 'Password must be at least 3 characters long')]").exists());
@@ -211,8 +211,9 @@ public final class UserControllerTest {
     @Test
     @DisplayName("Should handle POST to create new User with duplicate email correctly")
     void checkCreateWithDuplicateEmail() throws Exception {
+        var duplicateEmail = testUser.getEmail();
         var inputUserData = UserCreateDto.builder()
-                .email(testUser.getEmail())
+                .email(duplicateEmail)
                 .password("123")
                 .build();
 
@@ -223,9 +224,9 @@ public final class UserControllerTest {
 
         mvc.perform(badRequest)
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Constraint violation"))
+                .andExpect(jsonPath("$.error").value("Uniqueness violation"))
                 .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == 'Email must be unique')]").exists());
+                .andExpect(jsonPath("$.details[?(@ == 'Email " + duplicateEmail + " already exists')]").exists());
     }
 
     @Test
@@ -255,7 +256,7 @@ public final class UserControllerTest {
 
         mvc.perform(badRequest)
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.error").value("Input data validation failed"))
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@ == 'Invalid email format')]").exists())
                 .andExpect(jsonPath("$.details[?(@ == 'Password must be at least 3 characters long')]").exists());

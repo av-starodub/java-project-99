@@ -1,21 +1,16 @@
 package hexlet.code.controller;
 
-import hexlet.code.dto.ErrorDto;
 import hexlet.code.dto.status.TaskStatusCreateDto;
 import hexlet.code.dto.status.TaskStatusDto;
 import hexlet.code.dto.status.TaskStatusUpdateDto;
-import hexlet.code.exception.DuplicateTaskStatusException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.service.TaskStatusService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -81,27 +76,6 @@ public final class TaskStatusController {
         return taskStatusService.update(id, updateDto)
                 .map(this::statusToDto)
                 .orElseThrow(() -> new ResourceNotFoundException("TaskStatus with id=%d not found".formatted(id)));
-    }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorDto handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return new ErrorDto("Resource not found", List.of(ex.getMessage()));
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorDto handleValidationException(MethodArgumentNotValidException ex) {
-        var details = ex.getBindingResult().getAllErrors().stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .toList();
-        return new ErrorDto("Validation failed", details);
-    }
-
-    @ExceptionHandler(DuplicateTaskStatusException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorDto handleDataIntegrityViolation(DuplicateTaskStatusException ex) {
-        return new ErrorDto("Constraint violation", ex.getDetails());
     }
 
 }

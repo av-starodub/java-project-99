@@ -2,7 +2,7 @@ package hexlet.code.service;
 
 import hexlet.code.dto.status.TaskStatusCreateDto;
 import hexlet.code.dto.status.TaskStatusUpdateDto;
-import hexlet.code.exception.DuplicateTaskStatusException;
+import hexlet.code.exception.UniquenessViolationException;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskStatusRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public final class TaskStatusService {
         validateSlug(slug, errorDetails);
 
         if (!errorDetails.isEmpty()) {
-            throw new DuplicateTaskStatusException(errorDetails);
+            throw new UniquenessViolationException(errorDetails);
         }
 
         var status = TaskStatus.builder()
@@ -60,7 +60,7 @@ public final class TaskStatusService {
         updateDto.getSlug().ifPresent(slug -> validateSlug(slug, errorDetails));
 
         if (!errorDetails.isEmpty()) {
-            throw new DuplicateTaskStatusException(errorDetails);
+            throw new UniquenessViolationException(errorDetails);
         }
 
         return getById(id)

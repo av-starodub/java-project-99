@@ -1,6 +1,5 @@
 package hexlet.code.controller;
 
-import hexlet.code.dto.ErrorDto;
 import hexlet.code.dto.user.UserCreateDto;
 import hexlet.code.dto.user.UserDto;
 import hexlet.code.dto.user.UserUpdateDto;
@@ -10,13 +9,9 @@ import hexlet.code.service.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -74,27 +69,6 @@ public final class UserController {
         return userService.update(id, updateDto)
                 .map(this::userToDto)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id=%d not found".formatted(id)));
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorDto handleValidationException(MethodArgumentNotValidException ex) {
-        var details = ex.getBindingResult().getAllErrors().stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .toList();
-        return new ErrorDto("Validation failed", details);
-    }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorDto handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return new ErrorDto("Resource not found", List.of(ex.getMessage()));
-    }
-
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorDto handleDataIntegrityViolation(DataIntegrityViolationException ignoredEx) {
-        return new ErrorDto("Constraint violation", List.of("Email must be unique"));
     }
 
     private UserDto userToDto(User user) {

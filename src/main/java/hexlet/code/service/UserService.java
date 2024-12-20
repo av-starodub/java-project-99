@@ -3,6 +3,7 @@ package hexlet.code.service;
 import hexlet.code.dto.user.UserCreateDto;
 
 import hexlet.code.dto.user.UserUpdateDto;
+import hexlet.code.exception.UniquenessViolationException;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +22,17 @@ public final class UserService {
     private final PasswordEncoder encoder;
 
     public User create(UserCreateDto createDto) {
+        var email = createDto.getEmail();
+        validateEmail(email);
+
         var passwordHash = encoder.encode(createDto.getPassword());
         var user = User.builder()
                 .firstName(createDto.getFirstName())
                 .lastName(createDto.getLastName())
-                .email(createDto.getEmail())
+                .email(email)
                 .passwordHash(passwordHash)
                 .build();
+
         return userRepository.save(user);
     }
 
@@ -48,9 +53,16 @@ public final class UserService {
     }
 
     public Optional<User> update(Long id, UserUpdateDto updateDto) {
+        updateDto.getEmail().ifPresent(this::validateEmail);
         return getById(id)
                 .map(user -> updateData(user, updateDto))
                 .map(userRepository::save);
+    }
+
+    private void validateEmail(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new UniquenessViolationException(List.of("Email %s already exists".formatted(email)));
+        }
     }
 
     private User updateData(User user, UserUpdateDto updateDto) {
@@ -62,4 +74,5 @@ public final class UserService {
                 .passwordHash(updateDto.getPassword().map(encoder::encode).orElse(user.getPasswordHash()))
                 .build();
     }
+
 }

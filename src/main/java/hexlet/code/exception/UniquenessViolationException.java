@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
-public class DuplicateTaskStatusException extends RuntimeException {
+public class UniquenessViolationException extends RuntimeException {
 
     private final List<String> details;
 
