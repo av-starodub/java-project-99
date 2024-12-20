@@ -3,6 +3,7 @@ package hexlet.code.service;
 import hexlet.code.dto.status.StatusCreateDto;
 import hexlet.code.dto.status.StatusUpdateDto;
 import hexlet.code.exception.UniquenessViolationException;
+import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskStatusRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +17,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public final class TaskStatusService {
 
-    private final TaskStatusRepository repo;
+    private final TaskStatusRepository repository;
 
-    public TaskStatus create(StatusCreateDto taskStatus) {
-        var name = taskStatus.getName();
-        var slug = taskStatus.getSlug();
+    private final TaskStatusMapper mapper;
+
+    public TaskStatus create(StatusCreateDto createDto) {
+        var name = createDto.getName();
+        var slug = createDto.getSlug();
 
         var errorDetails = new ArrayList<String>();
         validateName(name, errorDetails);
@@ -30,28 +33,24 @@ public final class TaskStatusService {
             throw new UniquenessViolationException(errorDetails);
         }
 
-        var status = TaskStatus.builder()
-                .name(name)
-                .slug(slug)
-                .build();
-
-        return repo.save(status);
+        var status = mapper.toDomain(createDto);
+        return repository.save(status);
     }
 
     public Optional<TaskStatus> getById(Long id) {
-        return repo.findById(id);
+        return repository.findById(id);
     }
 
     public Optional<TaskStatus> getBySlug(String slug) {
-        return repo.findBySlug(slug);
+        return repository.findBySlug(slug);
     }
 
     public List<TaskStatus> getAll() {
-        return repo.findAll();
+        return repository.findAll();
     }
 
     public void delete(Long id) {
-        repo.deleteById(id);
+        repository.deleteById(id);
     }
 
     public Optional<TaskStatus> update(Long id, StatusUpdateDto updateDto) {
@@ -64,29 +63,20 @@ public final class TaskStatusService {
         }
 
         return getById(id)
-                .map(taskStatus -> updateData(taskStatus, updateDto))
-                .map(repo::save);
+                .map(taskStatus -> mapper.update(taskStatus, updateDto))
+                .map(repository::save);
     }
 
     private void validateName(String name, List<String> errorDetails) {
-        if (repo.existsByName(name)) {
+        if (repository.existsByName(name)) {
             errorDetails.add("Name %s already exist".formatted(name));
         }
     }
 
     private void validateSlug(String slug, List<String> errorDetails) {
-        if (repo.existsBySlug(slug)) {
+        if (repository.existsBySlug(slug)) {
             errorDetails.add("Slug %s already exist".formatted(slug));
         }
-    }
-
-    private TaskStatus updateData(TaskStatus taskStatus, StatusUpdateDto updateDto) {
-        return TaskStatus.builder()
-                .id(taskStatus.getId())
-                .name(updateDto.getName().orElse(taskStatus.getName()))
-                .slug(updateDto.getSlug().orElse(taskStatus.getSlug()))
-                .createdAt(taskStatus.getCreatedAt())
-                .build();
     }
 
 }

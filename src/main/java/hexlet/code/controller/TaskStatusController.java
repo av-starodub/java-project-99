@@ -4,7 +4,7 @@ import hexlet.code.dto.status.StatusCreateDto;
 import hexlet.code.dto.status.StatusResponseDto;
 import hexlet.code.dto.status.StatusUpdateDto;
 import hexlet.code.exception.ResourceNotFoundException;
-import hexlet.code.model.TaskStatus;
+import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.service.TaskStatusService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,20 +27,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public final class TaskStatusController {
 
-    private final TaskStatusService taskStatusService;
+    private final TaskStatusService service;
+
+    private final TaskStatusMapper mapper;
 
     @PostMapping("/task_statuses")
     @ResponseStatus(HttpStatus.CREATED)
     public StatusResponseDto create(@Valid @RequestBody StatusCreateDto createDto) {
-        var newStatus = taskStatusService.create(createDto);
-        return statusToDto(newStatus);
+        var newStatus = service.create(createDto);
+        return mapper.domainTo(newStatus);
     }
 
     @GetMapping("/task_statuses")
     public ResponseEntity<List<StatusResponseDto>> index() {
-        var statuses = taskStatusService.getAll();
+        var statuses = service.getAll();
         var statusDtos = statuses.stream()
-                .map(this::statusToDto)
+                .map(mapper::domainTo)
                 .toList();
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(statusDtos.size()))
@@ -50,31 +52,22 @@ public final class TaskStatusController {
     @GetMapping("/task_statuses/{id}")
     @ResponseStatus(HttpStatus.OK)
     public StatusResponseDto show(@PathVariable Long id) {
-        return taskStatusService.getById(id)
-                .map(this::statusToDto)
+        return service.getById(id)
+                .map(mapper::domainTo)
                 .orElseThrow(() -> new ResourceNotFoundException("TaskStatus with id=%d not found".formatted(id)));
-    }
-
-    private StatusResponseDto statusToDto(TaskStatus taskStatus) {
-        return StatusResponseDto.builder()
-                .id(taskStatus.getId())
-                .name(taskStatus.getName())
-                .slug(taskStatus.getSlug())
-                .createdAt(taskStatus.getCreatedAt())
-                .build();
     }
 
     @DeleteMapping("/task_statuses/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
-        taskStatusService.delete(id);
+        service.delete(id);
     }
 
     @PutMapping("/task_statuses/{id}")
     @ResponseStatus(HttpStatus.OK)
     public StatusResponseDto update(@PathVariable Long id, @Valid @RequestBody StatusUpdateDto updateDto) {
-        return taskStatusService.update(id, updateDto)
-                .map(this::statusToDto)
+        return service.update(id, updateDto)
+                .map(mapper::domainTo)
                 .orElseThrow(() -> new ResourceNotFoundException("TaskStatus with id=%d not found".formatted(id)));
     }
 
