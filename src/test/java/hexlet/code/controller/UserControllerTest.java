@@ -1,6 +1,7 @@
 package hexlet.code.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hexlet.code.dto.user.UserCreateDto;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
 import hexlet.code.service.UserService;
@@ -31,6 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -70,12 +72,12 @@ public final class UserControllerTest {
                 .apply(springSecurity())
                 .build();
         token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
-        testUser = Instancio.of(modelGenerator.getUserModel()).create();
-        userRepository.save(testUser);
+        var testUserData = Instancio.of(modelGenerator.getUserModel()).create();
+        testUser = userRepository.save(testUserData);
     }
 
     @Test
-    @DisplayName("Should create new User correctly on POST /users with valid user input")
+    @DisplayName("Should handle valid POST to create new User correctly")
     void checkCreate() throws Exception {
         var inputUserData = Instancio.of(modelGenerator.getUserData()).create();
 
@@ -89,7 +91,8 @@ public final class UserControllerTest {
                 .andExpect(jsonPath("$.firstName").value(inputUserData.getFirstName()))
                 .andExpect(jsonPath("$.lastName").value(inputUserData.getLastName()))
                 .andExpect(jsonPath("$.createdAt").isNotEmpty())
-                .andExpect(jsonPath("$.updatedAt").isNotEmpty());
+                .andExpect(jsonPath("$.updatedAt").isNotEmpty())
+                .andExpect(jsonPath("$.password").doesNotExist());
 
         var newUser = userService.getByEmail(inputUserData.getEmail()).orElse(null);
         assertThat(newUser).isNotNull();
@@ -102,91 +105,20 @@ public final class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Should handle missing required fields in the input data correctly")
-    void checkCreateMissingRequiredFields() throws Exception {
-        var invalidInputData = Instancio.of(modelGenerator.getUserDataWithoutRequiredFields()).create();
-
-        var badRequest = post("/api/users")
-                .with(token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidInputData));
-
-        mvc.perform(badRequest)
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation failed"))
-                .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == 'Email is required')]").exists())
-                .andExpect(jsonPath("$.details[?(@ == 'Password is required')]").exists());
-    }
-
-    @Test
-    @DisplayName("Should handle invalid email format and password length in the user data correctly")
-    void checkCreateWithInvalidEmailAndPassword() throws Exception {
-        var invalidInputData = Instancio.of(
-                modelGenerator.getUserDataWithInvalidEmailAndPassword()
-        ).create();
-
-        var badRequest = post("/api/users")
-                .with(token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidInputData));
-
-        mvc.perform(badRequest)
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation failed"))
-                .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == 'Invalid email format')]").exists())
-                .andExpect(jsonPath("$.details[?(@ == 'Password must be at least 3 characters long')]").exists());
-    }
-
-    @Test
-    @DisplayName("Should handle POST /users with duplicate email correctly")
-    void checkCreateDuplicateEmail() throws Exception {
-        var inputUserData = Instancio.of(modelGenerator.getUserData()).create();
-
-        var request = post("/api/users")
-                .with(token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(inputUserData));
-        mvc.perform(request).andExpect(status().isCreated());
-
-        var badRequest = post("/api/users")
-                .with(token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(inputUserData));
-        mvc.perform(badRequest)
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Constraint violation"))
-                .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == 'Email must be unique')]").exists());
-    }
-
-    @Test
-    @DisplayName("Should handle no request body correctly")
-    void checkCreateNoRequestBody() throws Exception {
-        mvc.perform(post("/api/users")
-                        .with(token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation failed"))
-                .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == 'Email is required')]").exists())
-                .andExpect(jsonPath("$.details[?(@ == 'Password is required')]").exists());
-    }
-
-    @Test
-    @DisplayName("Should return all saved users on GET /users")
+    @DisplayName("Should handle GET to show all existing users correctly")
     void checkGetAllUsers() throws Exception {
         var expectedUsers = userService.getAll();
-        var testUserIdx = expectedUsers.indexOf(testUser);
-        Function<String, String> toPath = (key) -> "$[%d].%s".formatted(testUserIdx, key);
+        var savedUserIdx = expectedUsers.indexOf(testUser);
+
+        Function<String, String> toPath = (key) -> "$[%d].%s".formatted(savedUserIdx, key);
 
         var request = get("/api/users").with(token);
         mvc.perform(request)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(userRepository.count()))
-                .andExpect(jsonPath(toPath.apply("id")).isNotEmpty())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(expectedUsers.size()))
+                .andExpect(header().string("X-Total-Count", String.valueOf(expectedUsers.size())))
+                .andExpect(jsonPath(toPath.apply("id")).value(testUser.getId()))
                 .andExpect(jsonPath(toPath.apply("firstName")).value(testUser.getFirstName()))
                 .andExpect(jsonPath(toPath.apply("lastName")).value(testUser.getLastName()))
                 .andExpect(jsonPath(toPath.apply("email")).value(testUser.getEmail()))
@@ -196,7 +128,7 @@ public final class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Should return user by 'id' on GET /users/{id}")
+    @DisplayName("Should handle GET by ID correctly")
     void checkShowById() throws Exception {
         var request = get("/api/users/" + testUser.getId()).with(token);
         mvc.perform(request)
@@ -205,32 +137,12 @@ public final class UserControllerTest {
                 .andExpect(jsonPath("$.lastName").value(testUser.getLastName()))
                 .andExpect(jsonPath("$.email").value(testUser.getEmail()))
                 .andExpect(jsonPath("$.createdAt").isNotEmpty())
-                .andExpect(jsonPath("$.updatedAt").isNotEmpty());
+                .andExpect(jsonPath("$.updatedAt").isNotEmpty())
+                .andExpect(jsonPath("$.password").doesNotExist());
     }
 
     @Test
-    @DisplayName("Should handle GET /users/{id} when user not found correctly")
-    void checkShowByIdNotFound() throws Exception {
-        var invalidId = Long.MAX_VALUE;
-        var request = get("/api/users/" + invalidId).with(token);
-        mvc.perform(request)
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Resource not found"))
-                .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == 'User with id=" + invalidId + " not found')]").exists());
-    }
-
-    @Test
-    @DisplayName("Should handle DELETE /users/{id} correctly")
-    void checkDeleteById() throws Exception {
-        var request = delete("/api/users/" + testUser.getId()).with(token);
-        mvc.perform(request)
-                .andExpect(status().isNoContent());
-        assertThat(userRepository.findById(testUser.getId())).isEmpty();
-    }
-
-    @Test
-    @DisplayName("Should update only new data")
+    @DisplayName("Should handle PUT to update only new data correctly")
     void checkUpdateOnlyNewData() throws Exception {
         var updatedUserData = Instancio.of(modelGenerator.getUserUpdatedData()).create();
 
@@ -265,16 +177,81 @@ public final class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Should handle user update with invalid email format and password length correctly")
+    @DisplayName("Should handle DELETE by ID correctly")
+    void checkDeleteById() throws Exception {
+        var request = delete("/api/users/" + testUser.getId()).with(token);
+        mvc.perform(request)
+                .andExpect(status().isNoContent());
+        assertThat(userRepository.findById(testUser.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should handle invalid POST to create new User correctly")
+    void checkCreateWithInvalidData() throws Exception {
+        userRepository.deleteAll();
+        var invalidInputData = UserCreateDto.builder()
+                .password("12")
+                .build();
+
+        var badRequest = post("/api/users")
+                .with(token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidInputData));
+
+        mvc.perform(badRequest)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.details").isArray())
+                .andExpect(jsonPath("$.details[?(@ == 'Email is required')]").exists())
+                .andExpect(jsonPath("$.details[?(@ == 'Password must be at least 3 characters long')]").exists());
+
+        assertThat(userRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should handle POST to create new User with duplicate email correctly")
+    void checkCreateWithDuplicateEmail() throws Exception {
+        var inputUserData = UserCreateDto.builder()
+                .email(testUser.getEmail())
+                .password("123")
+                .build();
+
+        var badRequest = post("/api/users")
+                .with(token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(inputUserData));
+
+        mvc.perform(badRequest)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Constraint violation"))
+                .andExpect(jsonPath("$.details").isArray())
+                .andExpect(jsonPath("$.details[?(@ == 'Email must be unique')]").exists());
+    }
+
+    @Test
+    @DisplayName("Should handle GET by ID when User not found correctly")
+    void checkShowByIdNotFound() throws Exception {
+        var invalidId = Long.MAX_VALUE;
+        var request = get("/api/users/" + invalidId).with(token);
+        mvc.perform(request)
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Resource not found"))
+                .andExpect(jsonPath("$.details").isArray())
+                .andExpect(jsonPath("$.details[?(@ == 'User with id=" + invalidId + " not found')]").exists());
+    }
+
+    @Test
+    @DisplayName("Should handle invalid PUT to update correctly")
     void checkUpdateWithInvalidEmailAndPassword() throws Exception {
-        var invalidDataForUpdate = Instancio.of(
-                modelGenerator.getUserDataWithInvalidEmailAndPassword()
-        ).create();
+        var invalidDataToUpdate = UserCreateDto.builder()
+                .email("invalid")
+                .password("12")
+                .build();
 
         var badRequest = put("/api/users/" + testUser.getId())
                 .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidDataForUpdate));
+                .content(objectMapper.writeValueAsString(invalidDataToUpdate));
 
         mvc.perform(badRequest)
                 .andExpect(status().isBadRequest())
@@ -282,10 +259,16 @@ public final class UserControllerTest {
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@ == 'Invalid email format')]").exists())
                 .andExpect(jsonPath("$.details[?(@ == 'Password must be at least 3 characters long')]").exists());
+
+        var actualUser = userRepository.findById(testUser.getId()).orElse(null);
+        assertThat(actualUser)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("email", testUser.getEmail())
+                .hasFieldOrPropertyWithValue("password", testUser.getPassword());
     }
 
     @Test
-    @DisplayName("Should handle update when user not found correctly")
+    @DisplayName("Should handle PUT to update when User not found correctly")
     void checkUpdateWhenNotFound() throws Exception {
         var updatedUserData = Instancio.of(modelGenerator.getUserUpdatedData()).create();
         var invalidId = Long.MAX_VALUE;

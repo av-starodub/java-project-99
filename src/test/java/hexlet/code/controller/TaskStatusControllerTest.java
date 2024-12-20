@@ -11,6 +11,7 @@ import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.service.TaskStatusService;
 import hexlet.code.util.ModelGenerator;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class TaskStatusControllerTest {
+public final class TaskStatusControllerTest {
 
     @Autowired
     private MockMvc mvc;
@@ -66,7 +67,7 @@ public class TaskStatusControllerTest {
     private TaskStatus testStatus;
 
     @BeforeEach
-    final void setup() {
+    void setup() {
         mvc = MockMvcBuilders.webAppContextSetup(wac)
                 .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
                 .apply(springSecurity())
@@ -75,13 +76,13 @@ public class TaskStatusControllerTest {
         testStatus = Instancio.of(modelGenerator.getTaskStatusModel()).create();
     }
 
-    @Autowired
-    final void tearDown() {
+    @AfterEach
+    void tearDown() {
         repository.deleteAll();
     }
 
     @Test
-    @DisplayName("Should handle request GET all existing TaskStatus correctly")
+    @DisplayName("Should handle GET to show all existing TaskStatus correctly")
     void checkGetAllTaskStatus() throws Exception {
         wac.getBean(DataInitializer.class).run(null);
 
@@ -132,7 +133,7 @@ public class TaskStatusControllerTest {
     }
 
     @Test
-    @DisplayName("Should handle request GET by ID correctly")
+    @DisplayName("Should handle GET by ID correctly")
     void checkShowById() throws Exception {
         var savedStatus = repository.save(testStatus);
         assertThat(savedStatus).isNotNull();
@@ -146,20 +147,21 @@ public class TaskStatusControllerTest {
     }
 
     @Test
-    @DisplayName("Should handle request DELETE by ID correctly")
+    @DisplayName("Should handle DELETE by ID correctly")
     void checkDeleteById() throws Exception {
         var savedStatus = repository.save(testStatus);
         assertThat(savedStatus).isNotNull();
 
         var savedStatusId = savedStatus.getId();
         var request = delete("/api/task_statuses/" + savedStatusId).with(token);
+
         mvc.perform(request).andExpect(status().isNoContent());
 
         assertThat(repository.findById(savedStatusId)).isEmpty();
     }
 
     @Test
-    @DisplayName("Should handle request PUT tp update only new data")
+    @DisplayName("Should handle PUT to update only new data correctly")
     void checkUpdateTaskStatus() throws Exception {
         var savedStatus = repository.save(testStatus);
         assertThat(savedStatus).isNotNull();
@@ -196,7 +198,7 @@ public class TaskStatusControllerTest {
     }
 
     @Test
-    @DisplayName("Should handle request GET by ID when TaskStatus not found correctly")
+    @DisplayName("Should handle GET by ID when TaskStatus not found correctly")
     void checkShowByIdNotFound() throws Exception {
         var invalidId = Long.MAX_VALUE;
         var request = get("/api/task_statuses/" + invalidId).with(token);
@@ -219,16 +221,12 @@ public class TaskStatusControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidData));
 
-        var body = mvc.perform(request)
+        mvc.perform(request)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Validation failed"))
                 .andExpect(jsonPath("$.details").isArray())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        List<String> details = JsonPath.read(body, "$.details");
-        assertThat(details).contains("Name is required", TaskStatus.SLUG_SIZE_ERROR_MESSAGE);
+                .andExpect(jsonPath("$.details[?(@ == 'Name is required')]").exists())
+                .andExpect(jsonPath("$.details[?(@ == '" + TaskStatus.SLUG_SIZE_ERROR_MESSAGE + "')]").exists());
 
         assertThat(repository.findAll()).isEmpty();
     }
@@ -249,16 +247,11 @@ public class TaskStatusControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidData));
 
-        var body = mvc.perform(request)
+        mvc.perform(request)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Validation failed"))
                 .andExpect(jsonPath("$.details").isArray())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        List<String> details = JsonPath.read(body, "$.details");
-        assertThat(details).containsOnly(TaskStatus.SLUG_SIZE_ERROR_MESSAGE);
+                .andExpect(jsonPath("$.details[?(@ == '" + TaskStatus.SLUG_SIZE_ERROR_MESSAGE + "')]").exists());
 
         var expectedSlug = testStatus.getSlug();
         var actualStatus = taskStatusService.getBySlug(expectedSlug).orElse(null);
@@ -266,7 +259,7 @@ public class TaskStatusControllerTest {
     }
 
     @Test
-    @DisplayName("Should handle POST to create TaskStatus with duplicate name and slug correctly")
+    @DisplayName("Should handle invalid POST to create TaskStatus with duplicate name and slug correctly")
     void checkCreateWithDuplicateNameAndSlug() throws Exception {
         var savedStatus = repository.save(testStatus);
         assertThat(savedStatus).isNotNull();
@@ -281,16 +274,17 @@ public class TaskStatusControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(duplicateStatusCreateDto));
 
-        var body = mvc.perform(badRequest)
+        mvc.perform(badRequest)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Constraint violation"))
                 .andExpect(jsonPath("$.details").isArray())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                .andExpect(jsonPath("$.details[?(@ == 'Parameters name and slug must be unique')]").exists());
 
-        List<String> details = JsonPath.read(body, "$.details");
-        assertThat(details).containsOnly("Parameters name and slug must be unique");
+        var expectedSlug = testStatus.getSlug();
+        var actualStatus = taskStatusService.getBySlug(expectedSlug).orElse(null);
+        assertThat(actualStatus)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", savedStatus.getId());
     }
 
 }
