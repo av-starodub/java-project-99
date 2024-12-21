@@ -4,11 +4,12 @@ import hexlet.code.dto.user.UserCreateDto;
 
 import hexlet.code.dto.user.UserUpdateDto;
 import hexlet.code.exception.UniquenessViolationException;
+import hexlet.code.exception.UserAssignedToTasksException;
 import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
+import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public final class UserService {
 
     private final UserMapper userMapper;
 
-    private final PasswordEncoder encoder;
+    private final TaskRepository taskRepository;
 
     public User create(UserCreateDto createDto) {
         var email = createDto.getEmail();
@@ -45,6 +46,9 @@ public final class UserService {
     }
 
     public void deleteById(Long id) {
+        if (taskRepository.existsByAssigneeId(id)) {
+            throw new UserAssignedToTasksException("Cannot delete. User is assigned to one or more tasks.");
+        }
         userRepository.deleteById(id);
     }
 

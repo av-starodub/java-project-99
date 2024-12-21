@@ -2,9 +2,11 @@ package hexlet.code.service;
 
 import hexlet.code.dto.status.StatusCreateDto;
 import hexlet.code.dto.status.StatusUpdateDto;
+import hexlet.code.exception.TaskStatusInUseException;
 import hexlet.code.exception.UniquenessViolationException;
 import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.model.TaskStatus;
+import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ public final class TaskStatusService {
     private final TaskStatusRepository repository;
 
     private final TaskStatusMapper mapper;
+
+    private final TaskRepository taskRepository;
 
     public TaskStatus create(StatusCreateDto createDto) {
         var name = createDto.getName();
@@ -50,6 +54,9 @@ public final class TaskStatusService {
     }
 
     public void delete(Long id) {
+        if (taskRepository.existsByTaskStatusId(id)) {
+            throw new TaskStatusInUseException("Cannot delete. TaskStatus is referenced to one or more tasks.");
+        }
         repository.deleteById(id);
     }
 
