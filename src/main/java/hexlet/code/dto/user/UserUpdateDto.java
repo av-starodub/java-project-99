@@ -10,7 +10,6 @@ import lombok.Setter;
 import java.util.Optional;
 
 @Setter
-@Builder
 public final class UserUpdateDto {
 
     public static final int MIN_PASSWORD_LENGTH = 3;

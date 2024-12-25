@@ -10,10 +10,13 @@ import hexlet.code.model.User;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+
+import static java.util.Objects.requireNonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -25,11 +28,15 @@ public final class UserService {
 
     private final TaskRepository taskRepository;
 
+    private final PasswordEncoder encoder;
+
     public User create(UserCreateDto createDto) {
         var email = createDto.getEmail();
         validateEmail(email);
 
         var user = userMapper.toDomain(createDto);
+        user.setPasswordHash(encoder.encode(createDto.getPassword()));
+
         return userRepository.save(user);
     }
 
@@ -54,8 +61,13 @@ public final class UserService {
 
     public Optional<User> update(Long id, UserUpdateDto updateDto) {
         updateDto.getEmail().ifPresent(this::validateEmail);
+
         return getById(id)
                 .map(user -> userMapper.update(user, updateDto))
+                .map(user -> {
+                    user.setPasswordHash(updateDto.getPassword().map(encoder::encode).orElse(user.getPasswordHash()));
+                    return user;
+                })
                 .map(userRepository::save);
     }
 
