@@ -30,12 +30,9 @@ public final class TaskStatusMapper
 
     @Override
     public TaskStatus update(TaskStatus taskStatus, StatusUpdateDto updateDto) {
-        return TaskStatus.builder()
-                .id(taskStatus.getId())
-                .name(updateDto.getName().orElse(taskStatus.getName()))
-                .slug(updateDto.getSlug().orElse(taskStatus.getSlug()))
-                .createdAt(taskStatus.getCreatedAt())
-                .build();
+        taskStatus.setName(updateDto.getName().orElse(taskStatus.getName()));
+        taskStatus.setSlug(updateDto.getSlug().orElse(taskStatus.getSlug()));
+        return taskStatus;
     }
 
 }
