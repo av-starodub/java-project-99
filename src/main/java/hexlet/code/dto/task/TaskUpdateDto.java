@@ -8,7 +8,7 @@ import java.util.Optional;
 
 @Setter
 @Builder
-public class TaskUpdateDto {
+public final class TaskUpdateDto {
 
     private String title;
 

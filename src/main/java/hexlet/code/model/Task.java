@@ -14,11 +14,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @Getter
 @Setter
@@ -51,6 +53,17 @@ public final class Task {
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public Long getAssigneeId() {
+        return nonNull(assignee) ? assignee.getId() : null;
+    }
+
+    public String getStatusSlug() {
+        if (isNull(taskStatus)) {
+            throw new IllegalStateException("Task status not set");
+        }
+        return taskStatus.getSlug();
+    }
 
     @Override
     public String toString() {

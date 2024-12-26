@@ -10,10 +10,10 @@ package hexlet.code.mapper;
  */
 public abstract class AbstractMapper<T, CD, UD, RD> {
 
-    protected abstract T toDomain(CD dto);
+    public abstract T toDomain(CD dto);
 
-    protected abstract RD domainTo(T entity);
+    public abstract RD domainTo(T entity);
 
-    protected abstract T update(T entity, UD dto);
+    public abstract T update(T entity, UD dto);
 
 }
