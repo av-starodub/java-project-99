@@ -79,7 +79,7 @@ public final class UserControllerTest {
     @Test
     @DisplayName("Should handle valid POST to create new User correctly")
     void checkCreate() throws Exception {
-        var inputUserData = Instancio.of(modelGenerator.getUserData()).create();
+        var inputUserData = Instancio.of(modelGenerator.getUserInputData()).create();
 
         var request = post("/api/users")
                 .with(token)

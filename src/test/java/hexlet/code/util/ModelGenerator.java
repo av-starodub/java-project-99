@@ -21,11 +21,7 @@ public class ModelGenerator {
 
     private Model<User> userModel;
 
-    private Model<UserCreateDto> userData;
-
-    private Model<UserCreateDto> userDataWithoutRequiredFields;
-
-    private Model<UserCreateDto> userDataWithInvalidEmailAndPassword;
+    private Model<UserCreateDto> userInputData;
 
     private Model<UserUpdateDto> userUpdatedData;
 
@@ -48,18 +44,8 @@ public class ModelGenerator {
                 .supply(field(User::getEmail), () -> faker.internet().emailAddress())
                 .toModel();
 
-        userData = Instancio.of(UserCreateDto.class)
+        userInputData = Instancio.of(UserCreateDto.class)
                 .supply(field(UserCreateDto::getEmail), () -> faker.internet().emailAddress())
-                .toModel();
-
-        userDataWithoutRequiredFields = Instancio.of(UserCreateDto.class)
-                .ignore(field(UserCreateDto::getEmail))
-                .ignore(field(UserCreateDto::getPassword))
-                .toModel();
-
-        userDataWithInvalidEmailAndPassword = Instancio.of(UserCreateDto.class)
-                .set(field(UserCreateDto::getEmail), "invalid email")
-                .set(field(UserCreateDto::getPassword), "12")
                 .toModel();
 
         userUpdatedData = Instancio.of(UserUpdateDto.class)
