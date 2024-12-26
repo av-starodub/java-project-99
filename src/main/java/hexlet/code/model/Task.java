@@ -38,15 +38,13 @@ public final class Task {
     private String name;
 
     @Column(unique = true)
-    private Integer index;
+    private Long index;
 
     private String description;
 
-    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private TaskStatus taskStatus;
 
-    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     private User assignee;
 
