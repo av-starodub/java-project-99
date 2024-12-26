@@ -32,9 +32,9 @@ public final class UserMapper extends AbstractMapper<User, UserCreateDto, UserUp
 
     @Override
     public User update(User user, UserUpdateDto dto) {
-        user.setFirstName(dto.getFirstName().orElse(user.getFirstName()));
-        user.setLastName(dto.getLastName().orElse(user.getLastName()));
-        user.setEmail(dto.getEmail().orElse(user.getEmail()));
+        dto.getFirstName().ifPresent(user::setFirstName);
+        dto.getLastName().ifPresent(user::setLastName);
+        dto.getEmail().ifPresent(user::setEmail);
         return user;
     }
 

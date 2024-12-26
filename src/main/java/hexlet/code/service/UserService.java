@@ -16,8 +16,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Objects.requireNonNull;
-
 @Service
 @RequiredArgsConstructor
 public final class UserService {
@@ -63,12 +61,11 @@ public final class UserService {
         updateDto.getEmail().ifPresent(this::validateEmail);
 
         return getById(id)
-                .map(user -> userMapper.update(user, updateDto))
                 .map(user -> {
+                    userMapper.update(user, updateDto);
                     user.setPasswordHash(updateDto.getPassword().map(encoder::encode).orElse(user.getPasswordHash()));
-                    return user;
-                })
-                .map(userRepository::save);
+                    return userRepository.save(user);
+                });
     }
 
     private void validateEmail(String email) {
