@@ -2,6 +2,7 @@ package hexlet.code.util;
 
 import hexlet.code.dto.user.UserCreateDto;
 import hexlet.code.dto.user.UserUpdateDto;
+import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
 import jakarta.annotation.PostConstruct;
@@ -26,6 +27,8 @@ public class ModelGenerator {
     private Model<UserUpdateDto> userUpdatedData;
 
     private Model<TaskStatus> taskStatusModel;
+
+    private Model<Task> taskModel;
 
     @Autowired
     private Faker faker;
@@ -60,6 +63,16 @@ public class ModelGenerator {
                 .ignore(field(TaskStatus::getCreatedAt))
                 .set(field(TaskStatus::getName), "Test")
                 .set(field(TaskStatus::getSlug), "test")
+                .toModel();
+
+        taskModel = Instancio.of(Task.class)
+                .ignore(field(Task::getId))
+                .ignore(field(Task::getCreatedAt))
+                .ignore(field(Task::getAssignee))
+                .ignore(field(Task::getTaskStatus))
+                .set(field(Task::getName), "Test")
+                .set(field(Task::getDescription), "Test")
+                .set(field(Task::getIndex), 1L)
                 .toModel();
     }
 
