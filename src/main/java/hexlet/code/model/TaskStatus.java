@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "task_statuses")
@@ -42,8 +44,9 @@ public final class TaskStatus {
 
     @Column(unique = true, nullable = false)
     private String name;
-
+    @EqualsAndHashCode.Include
     @Column(unique = true, nullable = false)
+
     private String slug;
 
     @CreatedDate

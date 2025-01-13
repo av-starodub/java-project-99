@@ -1,6 +1,8 @@
 package hexlet.code.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
+import hexlet.code.dto.task.TaskCreateDto;
 import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -23,10 +26,12 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -106,5 +111,44 @@ public final class TaskControllerTest {
                 .andExpect(jsonPath("$[*].assignee_id").value(hasItem(testUser.getId().intValue())))
                 .andExpect(jsonPath("$[*].status").value(hasItem(testStatus.getSlug())));
     }
+    @Test
+    @DisplayName("Should handle valid POST to create new Task correctly")
+    void checkCreateTask() throws Exception {
+        var taskCreateDto = TaskCreateDto.builder()
+                .index(testTask.getIndex() + 1)
+                .title("New task")
+                .content("New task")
+                .assigneeId(testUser.getId())
+                .status(testStatus.getSlug())
+                .build();
 
+        var request = post("/api/tasks")
+                .with(token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(taskCreateDto));
+
+        var body = mvc.perform(request)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.title").value(taskCreateDto.getTitle()))
+                .andExpect(jsonPath("$.content").value(taskCreateDto.getContent()))
+                .andExpect(jsonPath("$.assignee_id").value(taskCreateDto.getAssigneeId()))
+                .andExpect(jsonPath("$.status").value(taskCreateDto.getStatus()))
+                .andExpect(jsonPath("$.createdAt").isNotEmpty())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        var savedTaskId = JsonPath.<Integer>read(body, "$.id").longValue();
+        var savedTask = taskRepository.findWithRelationsById(savedTaskId).orElse(null);
+
+        assertThat(savedTask)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("index", taskCreateDto.getIndex())
+                .hasFieldOrPropertyWithValue("name", taskCreateDto.getTitle())
+                .hasFieldOrPropertyWithValue("description", taskCreateDto.getContent())
+                .hasFieldOrPropertyWithValue("taskStatus", testStatus)
+                .hasFieldOrPropertyWithValue("assignee", testUser)
+                .hasFieldOrProperty("createdAt").isNotNull();
+    }
 }
