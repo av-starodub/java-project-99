@@ -25,8 +25,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -150,5 +152,36 @@ public final class TaskControllerTest {
                 .hasFieldOrPropertyWithValue("taskStatus", testStatus)
                 .hasFieldOrPropertyWithValue("assignee", testUser)
                 .hasFieldOrProperty("createdAt").isNotNull();
+    }
+
+    @Test
+    @DisplayName("Should handle GET by ID correctly")
+    void checkShowById() throws Exception {
+        var request = get("/api/tasks/" + testTask.getId()).with(token);
+        var body = mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.title").value(testTask.getName()))
+                .andExpect(jsonPath("$.content").value(testTask.getDescription()))
+                .andExpect(jsonPath("$.assignee_id").value(testTask.getAssigneeId()))
+                .andExpect(jsonPath("$.status").value(testTask.getStatusSlug()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        var createdAt = JsonPath.<String>read(body, "$.createdAt");
+        assertThat(testTask.getCreatedAt()).isCloseTo(createdAt, within(1, ChronoUnit.MILLIS));
+
+    }
+    @Test
+    @DisplayName("Should handle GET by ID when Task not found correctly")
+    void checkShowByIdNotFound() throws Exception {
+        var invalidId = Long.MAX_VALUE;
+        var request = get("/api/tasks/" + invalidId).with(token);
+        mvc.perform(request)
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Resource not found"))
+                .andExpect(jsonPath("$.details").isArray())
+                .andExpect(jsonPath("$.details[?(@ == 'Task with id=" + invalidId + " not found')]").exists());
     }
 }
