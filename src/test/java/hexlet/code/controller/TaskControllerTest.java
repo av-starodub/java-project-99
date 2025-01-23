@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.within;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -222,6 +223,15 @@ public final class TaskControllerTest {
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("name", expectedTitle)
                 .hasFieldOrPropertyWithValue("description", expectedContent);
+    }
+
+    @Test
+    @DisplayName("Should handle DELETE by ID correctly")
+    void checkDeleteById() throws Exception {
+        var existTaskId = testTask.getId();
+        var request = delete("/api/tasks/" + existTaskId).with(token);
+        mvc.perform(request).andExpect(status().isNoContent());
+        assertThat(taskRepository.findById(existTaskId)).isEmpty();
     }
 
 }
