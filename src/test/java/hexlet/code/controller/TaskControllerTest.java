@@ -3,6 +3,7 @@ package hexlet.code.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import hexlet.code.dto.task.TaskCreateDto;
+import hexlet.code.dto.task.TaskUpdateDto;
 import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
@@ -34,6 +35,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -80,7 +82,7 @@ public final class TaskControllerTest {
 
         token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
 
-        var user  = Instancio.of(modelGenerator.getUserModel()).create();
+        var user = Instancio.of(modelGenerator.getUserModel()).create();
         testUser = userRepository.save(user);
 
         var status = Instancio.of(modelGenerator.getTaskStatusModel()).create();
@@ -113,6 +115,7 @@ public final class TaskControllerTest {
                 .andExpect(jsonPath("$[*].assignee_id").value(hasItem(testUser.getId().intValue())))
                 .andExpect(jsonPath("$[*].status").value(hasItem(testStatus.getSlug())));
     }
+
     @Test
     @DisplayName("Should handle valid POST to create new Task correctly")
     void checkCreateTask() throws Exception {
@@ -173,6 +176,7 @@ public final class TaskControllerTest {
         assertThat(testTask.getCreatedAt()).isCloseTo(createdAt, within(1, ChronoUnit.MILLIS));
 
     }
+
     @Test
     @DisplayName("Should handle GET by ID when Task not found correctly")
     void checkShowByIdNotFound() throws Exception {
@@ -184,4 +188,40 @@ public final class TaskControllerTest {
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@ == 'Task with id=" + invalidId + " not found')]").exists());
     }
+
+    @Test
+    @DisplayName("Should handle PUT to update only new Task data correctly")
+    void checkUpdateTask() throws Exception {
+        var updateDto = TaskUpdateDto.builder()
+                .title("New title")
+                .content("New content")
+                .build();
+
+        var request = put("/api/tasks/" + testTask.getId())
+                .with(token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateDto));
+
+        var expectedTitle = updateDto.getTitle().orElse(null);
+        var expectedContent = updateDto.getContent().orElse(null);
+
+        var body = mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(testTask.getId()))
+                .andExpect(jsonPath("$.title").value(expectedTitle))
+                .andExpect(jsonPath("$.content").value(expectedContent))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        var actualCreatedAt = JsonPath.<String>read(body, "$.createdAt");
+        assertThat(testTask.getCreatedAt()).isCloseTo(actualCreatedAt, within(1, ChronoUnit.MILLIS));
+
+        var updatedTask = taskRepository.findWithRelationsById(testTask.getId()).orElse(null);
+        assertThat(updatedTask)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("name", expectedTitle)
+                .hasFieldOrPropertyWithValue("description", expectedContent);
+    }
+
 }

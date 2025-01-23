@@ -56,4 +56,11 @@ public final class TaskController {
                 .orElseThrow(() -> new ResourceNotFoundException("Task with id=%s not found".formatted(id)));
     }
 
+    @PutMapping("/tasks/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public TaskResponseDto update(@PathVariable Long id, @Valid @RequestBody TaskUpdateDto updateDto) {
+        return taskService.update(id, updateDto)
+                .map(taskMapper::domainTo)
+                .orElseThrow(() -> new ResourceNotFoundException("Task with id=%s not found".formatted(id)));
+    }
 }

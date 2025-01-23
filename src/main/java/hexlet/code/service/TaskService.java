@@ -41,7 +41,8 @@ public final class TaskService {
         });
 
         return taskRepository.findById(id)
-                .map(task -> taskMapper.update(task, updateDto));
+                .map(task -> taskMapper.update(task, updateDto))
+                .map(taskRepository::save);
     }
 
     public void delete(Long id) {
