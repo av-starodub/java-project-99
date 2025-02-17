@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "labels")
-public class Label {
+public final class Label {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
