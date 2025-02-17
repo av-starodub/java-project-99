@@ -8,8 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,25 +16,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "task_statuses")
-public final class TaskStatus {
-
-    public static final int NAME_MIN_LENGTH = 1;
-
-    public static final int SLUG_MIN_LENGTH = 1;
-
-    public static final String NAME_SIZE_ERROR_MESSAGE = "Name must be at least " + NAME_MIN_LENGTH + " character long";
-
-    public static final String SLUG_SIZE_ERROR_MESSAGE = "Slug must be at least " + SLUG_MIN_LENGTH + " character long";
+@Table(name = "labels")
+public class Label {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,17 +32,13 @@ public final class TaskStatus {
     @Column(unique = true, nullable = false)
     private String name;
 
-    @EqualsAndHashCode.Include
-    @Column(unique = true, nullable = false)
-    private String slug;
-
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Override
     public String toString() {
-        return "TaskStatus{id=%d, name=%s, slug=%s, createdAt=%s}".formatted(id, name, slug, createdAt);
+        return "Label{id=%d, name=%s, createdAt=%s}".formatted(id, name, createdAt);
     }
 
 }
