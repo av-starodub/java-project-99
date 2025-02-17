@@ -11,17 +11,18 @@ public final class LabelMapper extends AbstractMapper<Label, LabelCreateDto, Lab
 
     @Override
     public Label toDomain(LabelCreateDto dto) {
-        return null;
+        return new Label(dto.getName());
     }
 
     @Override
     public LabelResponseDto domainTo(Label entity) {
-        return null;
+        return new LabelResponseDto(entity.getId(), entity.getName(), entity.getCreatedAt());
     }
 
     @Override
     public Label update(Label entity, LabelUpdateDto dto) {
-        return null;
+        entity.setName(dto.getName());
+        return entity;
     }
 
 }

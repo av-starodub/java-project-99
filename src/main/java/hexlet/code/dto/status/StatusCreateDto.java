@@ -14,7 +14,6 @@ import static hexlet.code.model.TaskStatus.SLUG_SIZE_ERROR_MESSAGE;
 @Builder
 public final class StatusCreateDto {
 
-
     @NotBlank(message = "Name is required")
     @Size(min = NAME_MIN_LENGTH, message = NAME_SIZE_ERROR_MESSAGE)
     private String name;
