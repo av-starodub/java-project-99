@@ -2,8 +2,11 @@ package hexlet.code.component;
 
 import hexlet.code.dto.user.UserCreateDto;
 import hexlet.code.exception.ApplicationInitializationException;
+import hexlet.code.model.DefaultLabelType;
 import hexlet.code.model.DefaultTaskStatusType;
+import hexlet.code.model.Label;
 import hexlet.code.model.TaskStatus;
+import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
 import hexlet.code.service.UserService;
@@ -21,6 +24,8 @@ public final class DataInitializer implements ApplicationRunner {
     private final UserRepository userRepository;
 
     private final TaskStatusRepository taskStatusRepository;
+
+    private final LabelRepository labelRepository;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -40,6 +45,11 @@ public final class DataInitializer implements ApplicationRunner {
                             .slug(statusType.getSlug())
                             .build())
                     .forEach(taskStatusRepository::save);
+
+            DefaultLabelType.getAllDefaultLabelNames().stream()
+                    .filter(labelRepository::existsByName)
+                    .map(Label::new)
+                    .forEach(labelRepository::save);
 
         } catch (Exception e) {
             throw new ApplicationInitializationException("Failed to init data: %s".formatted(e.getMessage()), e);
