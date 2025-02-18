@@ -7,6 +7,7 @@ import hexlet.code.dto.status.StatusCreateDto;
 import hexlet.code.dto.status.StatusUpdateDto;
 import hexlet.code.model.DefaultTaskStatusType;
 import hexlet.code.model.TaskStatus;
+import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.service.TaskStatusService;
 import hexlet.code.util.ModelGenerator;
@@ -25,11 +26,11 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 
 import java.nio.charset.StandardCharsets;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -86,20 +87,20 @@ public final class TaskStatusControllerTest {
     void checkGetAllTaskStatus() throws Exception {
         wac.getBean(DataInitializer.class).run(null);
 
-        var expectedStatusNames = DefaultTaskStatusType.getAllDefaultStatusNames();
+        var expectedExistingStatusNames = DefaultTaskStatusType.getAllDefaultStatusNames();
 
         var request = get("/api/task_statuses").with(token);
 
         var body = mvc.perform(request)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(expectedStatusNames.size()))
-                .andExpect(header().string("X-Total-Count", String.valueOf(expectedStatusNames.size())))
+                .andExpect(jsonPath("$.length()").value(expectedExistingStatusNames.size()))
+                .andExpect(header().string("X-Total-Count", String.valueOf(expectedExistingStatusNames.size())))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
         List<String> actualStatusNames = JsonPath.read(body, "$[*].name");
-        assertThat(actualStatusNames).isEqualTo(expectedStatusNames);
+        assertThat(actualStatusNames).isEqualTo(expectedExistingStatusNames);
     }
 
     @Test
@@ -125,11 +126,11 @@ public final class TaskStatusControllerTest {
                 .andExpect(jsonPath("$.createdAt").isNotEmpty());
 
         var savedStatus = taskStatusService.getBySlug(testStatus.getSlug()).orElse(null);
-        assertThat(savedStatus).isNotNull();
         assertThat(savedStatus)
+                .isNotNull()
                 .hasFieldOrPropertyWithValue("name", expectedSavedName)
-                .hasFieldOrPropertyWithValue("slug", expectedSavedSlug)
-                .hasFieldOrProperty("createdAt").isNotNull();
+                .hasFieldOrPropertyWithValue("slug", expectedSavedSlug);
+        assertThat(savedStatus.getCreatedAt()).isInstanceOf(LocalDateTime.class);
     }
 
     @Test
@@ -138,12 +139,16 @@ public final class TaskStatusControllerTest {
         var savedStatus = repository.save(testStatus);
         assertThat(savedStatus).isNotNull();
 
-        var request = get("/api/task_statuses/" + savedStatus.getId()).with(token);
+        var savedStatusId = savedStatus.getId();
+        var expectedCreatedAt = savedStatus.getCreatedAt()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+        var request = get("/api/task_statuses/" + savedStatusId).with(token);
         mvc.perform(request)
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(savedStatusId))
                 .andExpect(jsonPath("$.name").value(savedStatus.getName()))
                 .andExpect(jsonPath("$.slug").value(savedStatus.getSlug()))
-                .andExpect(jsonPath("$.createdAt").isNotEmpty());
+                .andExpect(jsonPath("$.createdAt").value(expectedCreatedAt));
     }
 
     @Test
@@ -167,34 +172,35 @@ public final class TaskStatusControllerTest {
         assertThat(savedStatus).isNotNull();
 
         var savedStatusId = savedStatus.getId();
+        var newSlug = "update";
         var updateDto = StatusUpdateDto.builder()
-                .slug("update")
+                .slug(newSlug)
                 .build();
+        var expectedCreatedAt = savedStatus.getCreatedAt()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+
         var request = put("/api/task_statuses/" + savedStatusId)
                 .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateDto));
 
-        var newSlug = updateDto.getSlug().orElse(null);
         mvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(savedStatusId))
                 .andExpect(jsonPath("$.name").value(testStatus.getName()))
                 .andExpect(jsonPath("$.slug").value(newSlug))
+                .andExpect(jsonPath("$.createdAt").value(expectedCreatedAt))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
         var updatedStatus = repository.findBySlug(newSlug).orElse(null);
-        assertThat(updatedStatus).isNotNull();
         assertThat(updatedStatus)
+                .isNotNull()
                 .hasFieldOrPropertyWithValue("id", savedStatusId)
                 .hasFieldOrPropertyWithValue("name", testStatus.getName())
-                .hasFieldOrPropertyWithValue("slug", newSlug);
-
-        var expectedCreatedAt = savedStatus.getCreatedAt();
-        var actualCreatedAt = updatedStatus.getCreatedAt();
-        assertThat(actualCreatedAt).isCloseTo(expectedCreatedAt, within(1, ChronoUnit.MILLIS));
+                .hasFieldOrPropertyWithValue("slug", newSlug)
+                .hasFieldOrPropertyWithValue("createdAt", savedStatus.getCreatedAt());
     }
 
     @Test
@@ -228,7 +234,7 @@ public final class TaskStatusControllerTest {
                 .andExpect(jsonPath("$.details[?(@ == 'Name is required')]").exists())
                 .andExpect(jsonPath("$.details[?(@ == '" + TaskStatus.SLUG_SIZE_ERROR_MESSAGE + "')]").exists());
 
-        assertThat(repository.findAll()).isEmpty();
+        assertThat(repository.findBySlug(invalidData.getSlug())).isEmpty();
     }
 
     @Test
@@ -253,9 +259,11 @@ public final class TaskStatusControllerTest {
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@ == '" + TaskStatus.SLUG_SIZE_ERROR_MESSAGE + "')]").exists());
 
-        var expectedSlug = testStatus.getSlug();
+        var expectedSlug = savedStatus.getSlug();
         var actualStatus = taskStatusService.getBySlug(expectedSlug).orElse(null);
-        assertThat(actualStatus).isNotNull();
+        assertThat(actualStatus)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("slug", expectedSlug);
     }
 
     @Test
@@ -283,36 +291,40 @@ public final class TaskStatusControllerTest {
                 .andExpect(jsonPath("$.details[?(@ == 'Name " + duplicateName + " already exist')]").exists())
                 .andExpect(jsonPath("$.details[?(@ == 'Slug " + duplicateSlug + " already exist')]").exists());
 
-        var expectedSlug = testStatus.getSlug();
-        var actualStatus = taskStatusService.getBySlug(expectedSlug).orElse(null);
-        assertThat(actualStatus)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", savedStatus.getId());
+        var expectedSlug = savedStatus.getSlug();
+        var expectedName = savedStatus.getName();
+        var sameStatuses = repository.findAll().stream()
+                .filter(s -> s.getSlug().equals(expectedSlug) || s.getName().equals(expectedName))
+                .toList();
+        assertThat(sameStatuses)
+                .hasSize(1)
+                .containsOnly(savedStatus);
     }
+
     @Test
-    @DisplayName("Should handle invalid PUT to update TaskStatus with duplicate slug correctly")
-    void checkUpdateWithDuplicateSlug() throws Exception {
+    @DisplayName("Should handle invalid DELETE when TaskStatus used")
+    void checkDeleteWhenStatusInUse() throws Exception {
         var savedStatus = repository.save(testStatus);
-        assertThat(savedStatus).isNotNull();
+        var task = Instancio.of(modelGenerator.getTaskModel()).create();
+        task.setTaskStatus(savedStatus);
+        var taskRepository = wac.getBean(TaskRepository.class);
+        taskRepository.save(task);
 
-        var duplicateSlug = testStatus.getSlug();
-        var duplicateStatusCreateDto = StatusCreateDto.builder()
-                .slug(duplicateSlug)
-                .build();
+        var savedStatusId = savedStatus.getId();
+        var request = delete("/api/task_statuses/" + savedStatusId).with(token);
 
-        var badRequest = put("/api/task_statuses/" + savedStatus.getId())
-                .with(token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(duplicateStatusCreateDto));
-
-        mvc.perform(badRequest)
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Uniqueness violation"))
+        mvc.perform(request)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("Removing the resource used"))
                 .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == 'Slug " + duplicateSlug + " already exist')]").exists());
+                .andExpect(jsonPath(
+                        "$.details[?(@ == 'Cannot delete. TaskStatus is referenced to one or more tasks.')]")
+                        .exists());
 
-        var expectedSlug = testStatus.getSlug();
-        var actualStatus = taskStatusService.getBySlug(expectedSlug).orElse(null);
-        assertThat(actualStatus).isNotNull();
+        var actualStatus = taskStatusService.getBySlug(savedStatus.getSlug()).orElse(null);
+        assertThat(actualStatus).isEqualTo(savedStatus);
+
+        taskRepository.deleteAll();
     }
+
 }

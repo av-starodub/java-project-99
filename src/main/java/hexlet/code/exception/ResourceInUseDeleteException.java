@@ -1,8 +1,8 @@
 package hexlet.code.exception;
 
-public class TaskStatusInUseException extends RuntimeException {
+public class ResourceInUseDeleteException extends RuntimeException {
 
-    public TaskStatusInUseException(String message) {
+    public ResourceInUseDeleteException(String message) {
         super(message);
     }
 

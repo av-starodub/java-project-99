@@ -2,7 +2,7 @@ package hexlet.code.service;
 
 import hexlet.code.dto.status.StatusCreateDto;
 import hexlet.code.dto.status.StatusUpdateDto;
-import hexlet.code.exception.TaskStatusInUseException;
+import hexlet.code.exception.ResourceInUseDeleteException;
 import hexlet.code.exception.UniquenessViolationException;
 import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.model.TaskStatus;
@@ -55,20 +55,12 @@ public final class TaskStatusService {
 
     public void delete(Long id) {
         if (taskRepository.existsByTaskStatusId(id)) {
-            throw new TaskStatusInUseException("Cannot delete. TaskStatus is referenced to one or more tasks.");
+            throw new ResourceInUseDeleteException("Cannot delete. TaskStatus is referenced to one or more tasks.");
         }
         repository.deleteById(id);
     }
 
     public Optional<TaskStatus> update(Long id, StatusUpdateDto updateDto) {
-        var errorDetails = new ArrayList<String>();
-        updateDto.getName().ifPresent(name -> validateName(name, errorDetails));
-        updateDto.getSlug().ifPresent(slug -> validateSlug(slug, errorDetails));
-
-        if (!errorDetails.isEmpty()) {
-            throw new UniquenessViolationException(errorDetails);
-        }
-
         return getById(id)
                 .map(taskStatus -> mapper.update(taskStatus, updateDto))
                 .map(repository::save);

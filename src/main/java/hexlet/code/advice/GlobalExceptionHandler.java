@@ -1,6 +1,7 @@
 package hexlet.code.advice;
 
 import hexlet.code.dto.ErrorDto;
+import hexlet.code.exception.ResourceInUseDeleteException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.exception.UniquenessViolationException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -38,10 +39,19 @@ public final class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorDto("Uniqueness violation", ex.getDetails()));
     }
+
+    @ExceptionHandler(ResourceInUseDeleteException.class)
+    public ResponseEntity<ErrorDto> handleResourceInUseDeleteException(ResourceInUseDeleteException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ErrorDto("Removing the resource used", List.of(ex.getMessage())));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDto> handleUnexpectedError(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorDto("Unexpected error", List.of(ex.getMessage())));
     }
+
 }
