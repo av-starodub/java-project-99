@@ -21,7 +21,10 @@ public final class LabelService {
     private final LabelMapper mapper;
 
     public Label create(LabelCreateDto createDto) {
-        validateName(createDto.getName());
+        var name = createDto.getName();
+        if (repository.existsByName(createDto.getName())) {
+            throw new UniquenessViolationException(List.of("Label %s already exists".formatted(name)));
+        }
         var newLabel = mapper.toDomain(createDto);
         return repository.save(newLabel);
     }
@@ -31,11 +34,11 @@ public final class LabelService {
     }
 
     public List<Label> getAll() {
+
         return repository.findAll();
     }
 
     public Optional<Label> update(Long id, LabelUpdateDto updateDto) {
-        validateName(updateDto.getName());
         return repository.findById(id)
                 .map(label -> mapper.update(label, updateDto))
                 .map(repository::save);
@@ -43,12 +46,6 @@ public final class LabelService {
 
     public void delete(Long id) {
         repository.deleteById(id);
-    }
-
-    private void validateName(String name) {
-        if (repository.existsByName(name)) {
-            throw new UniquenessViolationException(List.of("Label %s already exists".formatted(name)));
-        }
     }
 
 }
