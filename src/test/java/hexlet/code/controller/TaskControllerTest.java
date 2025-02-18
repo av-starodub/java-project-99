@@ -126,6 +126,7 @@ public final class TaskControllerTest {
                 .content("New task")
                 .assigneeId(testUser.getId())
                 .status(testStatus.getSlug())
+                .labelIds(testTask.getLabelIds())
                 .build();
 
         var request = post("/api/tasks")

@@ -8,6 +8,10 @@ import hexlet.code.dto.label.LabelUpdateDto;
 import hexlet.code.model.DefaultLabelType;
 import hexlet.code.model.Label;
 import hexlet.code.repository.LabelRepository;
+import hexlet.code.repository.TaskRepository;
+import hexlet.code.repository.TaskStatusRepository;
+import hexlet.code.util.ModelGenerator;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -225,7 +230,7 @@ public final class LabelControllerTest {
                 .andExpect(jsonPath("$.details[?(@ == '" + LabelCreateDto.NAME_SIZE_ERROR_MESSAGE + "')]").exists());
 
         var expectedName = savedLabel.getName();
-        var actualLabel =  labelRepository.findById(savedLabelId).orElse(null);
+        var actualLabel = labelRepository.findById(savedLabelId).orElse(null);
         assertThat(actualLabel)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("name", expectedName);
@@ -260,8 +265,39 @@ public final class LabelControllerTest {
 
     @Test
     @DisplayName("Should handle DELETE by ID Label associated with Task correctly")
-    void checkDeleteByIdLabelUsed() throws Exception {
+    void checkDeleteByIdWhenLabelInUse() throws Exception {
+        var savedLabel = labelRepository.save(testLabel);
 
+        var modelGenerator = wac.getBean(ModelGenerator.class);
+
+        var taskStatus = Instancio.of(modelGenerator.getTaskStatusModel()).create();
+        var taskStatusRepository = wac.getBean(TaskStatusRepository.class);
+        taskStatusRepository.save(taskStatus);
+
+        var task = Instancio.of(modelGenerator.getTaskModel()).create();
+        task.setTaskStatus(taskStatus);
+        task.setLabels(Set.of(savedLabel));
+        var taskRepository = wac.getBean(TaskRepository.class);
+        taskRepository.save(task);
+
+        var savedLabelId = savedLabel.getId();
+        var request = delete("/api/labels/" + savedLabelId).with(token);
+
+        mvc.perform(request)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("Removing the resource used"))
+                .andExpect(jsonPath("$.details").isArray())
+                .andExpect(jsonPath(
+                        "$.details[?(@ == 'Cannot delete. Label is referenced to one or more tasks.')]")
+                        .exists());
+
+        var actualLabel = labelRepository.findById(savedLabelId).orElse(null);
+        assertThat(actualLabel)
+                .isNotNull()
+                .isEqualTo(savedLabel);
+
+        taskRepository.deleteAll();
+        taskStatusRepository.deleteAll();
     }
 
 }

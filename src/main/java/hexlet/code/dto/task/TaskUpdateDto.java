@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Optional;
 
 @Setter
@@ -20,6 +21,8 @@ public final class TaskUpdateDto {
     private Long assigneeId;
 
     private String status;
+
+    private List<Long> labelIds;
 
     public Optional<String> getTitle() {
         return Optional.ofNullable(title);
@@ -39,6 +42,10 @@ public final class TaskUpdateDto {
 
     public Optional<String> getStatus() {
         return Optional.ofNullable(status);
+    }
+
+    public Optional<List<Long>> getLabelIds() {
+        return Optional.ofNullable(labelIds);
     }
 
 }

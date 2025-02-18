@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,5 +27,7 @@ public class TaskResponseDto {
     private String content;
 
     private String status;
+
+    private List<Long> labelIds;
 
 }

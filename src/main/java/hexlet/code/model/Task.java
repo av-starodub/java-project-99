@@ -7,6 +7,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -18,6 +21,9 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -54,6 +60,14 @@ public final class Task {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToMany
+    @JoinTable(
+            name = "task_labels",
+            joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "label_id")
+    )
+    private Set<Label> labels = new HashSet<>();
+
     public Long getAssigneeId() {
         return nonNull(assignee) ? assignee.getId() : null;
     }
@@ -63,6 +77,12 @@ public final class Task {
             throw new IllegalStateException("Task status not set");
         }
         return taskStatus.getSlug();
+    }
+
+    public List<Long> getLabelIds() {
+        return nonNull(labels)
+                ? labels.stream().map(Label::getId).toList()
+                : List.of();
     }
 
     @Override

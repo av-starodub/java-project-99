@@ -2,6 +2,7 @@ package hexlet.code.util;
 
 import hexlet.code.dto.user.UserCreateDto;
 import hexlet.code.dto.user.UserUpdateDto;
+import hexlet.code.model.Label;
 import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
@@ -13,6 +14,8 @@ import org.instancio.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.util.HashSet;
 
 import static org.instancio.Select.field;
 
@@ -73,6 +76,7 @@ public class ModelGenerator {
                 .set(field(Task::getName), "Test")
                 .set(field(Task::getDescription), "Test")
                 .set(field(Task::getIndex), 1L)
+                .set(field(Task::getLabels), new HashSet<Label>())
                 .toModel();
     }
 

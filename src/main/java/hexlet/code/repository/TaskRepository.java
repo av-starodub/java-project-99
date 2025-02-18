@@ -24,13 +24,17 @@ public interface TaskRepository extends JpaRepository<Task, Long>, JpaSpecificat
     )
     boolean existsByTaskStatusId(@Param("taskStatusId") Long taskStatusId);
 
+    @Query("SELECT CASE WHEN EXISTS "
+            + "(SELECT 1 FROM Task t JOIN t.labels l WHERE l.id = :labelId) THEN true ELSE false END")
+    boolean existsByLabelId(@Param("labelId") Long labelId);
+
     boolean existsByIndex(Long index);
 
     @Query("SELECT t FROM Task t")
-    @EntityGraph(attributePaths = {"taskStatus", "assignee"})
+    @EntityGraph(attributePaths = {"taskStatus", "assignee", "labels"})
     List<Task> findAllWithEagerRelationships();
 
-    @EntityGraph(attributePaths = {"taskStatus", "assignee"})
+    @EntityGraph(attributePaths = {"taskStatus", "assignee", "labels"})
     Optional<Task> findWithRelationsById(Long id);
 
 }
