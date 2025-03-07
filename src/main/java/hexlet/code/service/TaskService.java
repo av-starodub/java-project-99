@@ -1,6 +1,8 @@
 package hexlet.code.service;
 
+import hexlet.code.component.TaskSpecificationBuilder;
 import hexlet.code.dto.task.TaskCreateDto;
+import hexlet.code.dto.task.TaskFilterDto;
 import hexlet.code.dto.task.TaskUpdateDto;
 import hexlet.code.exception.UniquenessViolationException;
 import hexlet.code.mapper.TaskMapper;
@@ -20,6 +22,8 @@ public final class TaskService {
 
     private final TaskMapper taskMapper;
 
+    private final TaskSpecificationBuilder filterBuilder;
+
     public Task create(TaskCreateDto createDto) {
         var newTask = taskMapper.toDomain(createDto);
         return taskRepository.save(newTask);
@@ -31,6 +35,11 @@ public final class TaskService {
 
     public List<Task> getAll() {
         return taskRepository.findAllWithEagerRelationships();
+    }
+
+    public List<Task> getAll(TaskFilterDto filterDto) {
+        var filter = filterBuilder.build(filterDto);
+        return taskRepository.findAll(filter);
     }
 
     public Optional<Task> update(Long id, TaskUpdateDto updateDto) {

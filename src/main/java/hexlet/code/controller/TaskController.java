@@ -1,6 +1,7 @@
 package hexlet.code.controller;
 
 import hexlet.code.dto.task.TaskCreateDto;
+import hexlet.code.dto.task.TaskFilterDto;
 import hexlet.code.dto.task.TaskResponseDto;
 import hexlet.code.dto.task.TaskUpdateDto;
 import hexlet.code.exception.ResourceNotFoundException;
@@ -39,8 +40,8 @@ public final class TaskController {
     }
 
     @GetMapping("/tasks")
-    public ResponseEntity<List<TaskResponseDto>> index() {
-        var tasks = taskService.getAll();
+    public ResponseEntity<List<TaskResponseDto>> index(TaskFilterDto filterDto) {
+        var tasks = taskService.getAll(filterDto);
         var taskDtos = tasks.stream()
                 .map(taskMapper::domainTo)
                 .toList();

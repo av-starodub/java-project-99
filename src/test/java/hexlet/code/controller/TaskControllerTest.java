@@ -118,6 +118,33 @@ public final class TaskControllerTest {
     }
 
     @Test
+    @DisplayName("Should handle GET to show all tasks with filters correctly")
+    void checkGetWithFilter() throws Exception {
+        var requestWithNameAsFilter = get("/api/tasks?"
+                + "titleCont=" + testTask.getName())
+                .with(token);
+        var resultBodyByNameFilter = mvc.perform(requestWithNameAsFilter)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[*].id").value(hasItem(testTask.getId().intValue())))
+                .andExpect(jsonPath("$[*].assignee_id").value(hasItem(testUser.getId().intValue())))
+                .andExpect(jsonPath("$[*].status").value(hasItem(testStatus.getSlug())))
+                .andReturn().getResponse().getContentAsString();
+
+        var requestWithSlugAndAssigneeAsFilter = get("/api/tasks?"
+                + "status=" + testTask.getStatusSlug()
+                + "&assigneeId=" + testTask.getAssigneeId())
+                .with(token);
+        var resultBodyByStatusAndAssignee = mvc.perform(requestWithSlugAndAssigneeAsFilter)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(resultBodyByNameFilter).isEqualTo(resultBodyByStatusAndAssignee);
+
+    }
+
+    @Test
     @DisplayName("Should handle valid POST to create new Task correctly")
     void checkCreateTask() throws Exception {
         var taskCreateDto = TaskCreateDto.builder()
