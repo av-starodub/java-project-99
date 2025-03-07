@@ -59,10 +59,6 @@ dependencies {
     implementation("org.mapstruct:mapstruct-processor:1.6.3")
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.5")
-
-    implementation("io.sentry:sentry-spring-boot-starter:8.3.0")
-    implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.3.0")
 
     compileOnly("org.projectlombok:lombok")
 

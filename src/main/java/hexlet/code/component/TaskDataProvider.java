@@ -10,8 +10,11 @@ import hexlet.code.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import static java.util.Objects.nonNull;
 
 @Component
 @RequiredArgsConstructor
@@ -24,10 +27,14 @@ public final class TaskDataProvider {
     private final LabelRepository labelRepository;
 
     public User getUserById(Long userId) {
-        return userRepository.findById(userId).orElseThrow(
-                () -> new ResourceNotFoundException("User with id=%d not found".formatted(userId))
-        );
+        if (nonNull(userId)) {
+            return userRepository.findById(userId).orElseThrow(
+                    () -> new ResourceNotFoundException("User with id=%d not found".formatted(userId)));
+        } else {
+            return null;
+        }
     }
+
     public TaskStatus getTaskStatusBySlug(String slug) {
         return taskStatusRepository.findBySlug(slug).orElseThrow(
                 () -> new ResourceNotFoundException("TaskStatus with slug=%s not found".formatted(slug))
@@ -35,6 +42,7 @@ public final class TaskDataProvider {
     }
 
     public Set<Label> getLabelsByIds(List<Long> ids) {
-        return Set.copyOf(labelRepository.findAllById(ids));
+        return nonNull(ids) ? Set.copyOf(labelRepository.findAllById(ids)) : Collections.emptySet();
     }
+
 }
