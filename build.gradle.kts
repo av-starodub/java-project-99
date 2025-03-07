@@ -9,6 +9,7 @@ plugins {
     id("io.freefair.lombok") version "8.6"
     id("org.springframework.boot") version "3.4.0"
     id("io.spring.dependency-management") version "1.1.6"
+    id("io.sentry.jvm.gradle") version "5.3.0"
 }
 
 group = "hexlet.code"
@@ -60,6 +61,9 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.5")
 
+    implementation("io.sentry:sentry-spring-boot-starter:8.3.0")
+    implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.3.0")
+
     compileOnly("org.projectlombok:lombok")
 
     annotationProcessor("org.projectlombok:lombok")
@@ -97,7 +101,20 @@ tasks.jacocoTestReport {
     }
 }
 
+sentry {
+    includeSourceContext.set(true)
+    org = "avs-y7"
+    projectName = "java-spring-boot"
+    authToken = System.getenv("SENTRY_AUTH_TOKEN")
+}
+
+tasks.sentryBundleSourcesJava {
+    enabled = System.getenv("SENTRY_AUTH_TOKEN") != null
+}
+
 jacoco {
     toolVersion = "0.8.11"
     reportsDirectory = layout.buildDirectory.dir("reports/jacoco")
+
+
 }
