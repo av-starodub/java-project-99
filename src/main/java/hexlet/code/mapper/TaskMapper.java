@@ -22,7 +22,7 @@ public final class TaskMapper extends AbstractMapper<Task, TaskCreateDto, TaskUp
                 .description(dto.getContent())
                 .taskStatus(taskDataProvider.getTaskStatusBySlug(dto.getStatus()))
                 .assignee(taskDataProvider.getUserById(dto.getAssigneeId()))
-                .labels(taskDataProvider.getLabelsByIds(dto.getLabelIds()))
+                .labels(taskDataProvider.getLabelsByIds(dto.getTaskLabelIds()))
                 .build();
     }
 
@@ -36,7 +36,7 @@ public final class TaskMapper extends AbstractMapper<Task, TaskCreateDto, TaskUp
                 .title(task.getName())
                 .content(task.getDescription())
                 .status(task.getStatusSlug())
-                .labelIds(task.getLabelIds())
+                .taskLabelIds(task.getLabelIds())
                 .build();
     }
 

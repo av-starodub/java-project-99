@@ -28,6 +28,6 @@ public class TaskResponseDto {
 
     private String status;
 
-    private List<Long> labelIds;
+    private List<Long> taskLabelIds;
 
 }
