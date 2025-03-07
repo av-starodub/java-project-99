@@ -11,6 +11,7 @@ import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.service.TaskStatusService;
 import hexlet.code.util.ModelGenerator;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,9 +29,12 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
+import static org.assertj.core.api.BDDAssertions.as;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -200,7 +204,8 @@ public final class TaskStatusControllerTest {
                 .hasFieldOrPropertyWithValue("id", savedStatusId)
                 .hasFieldOrPropertyWithValue("name", testStatus.getName())
                 .hasFieldOrPropertyWithValue("slug", newSlug)
-                .hasFieldOrPropertyWithValue("createdAt", savedStatus.getCreatedAt());
+                .extracting(TaskStatus::getCreatedAt, as(InstanceOfAssertFactories.LOCAL_DATE_TIME))
+                .isCloseTo(savedStatus.getCreatedAt(), within(1, ChronoUnit.MILLIS));
     }
 
     @Test

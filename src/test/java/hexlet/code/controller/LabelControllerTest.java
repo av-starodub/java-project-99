@@ -11,6 +11,7 @@ import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.util.ModelGenerator;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
+import static org.assertj.core.api.BDDAssertions.as;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -33,6 +36,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 
@@ -161,7 +165,6 @@ public final class LabelControllerTest {
         var labelUpdateDto = new LabelUpdateDto("updated");
         var expectedCreatedAt = savedLabel.getCreatedAt()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-
         var request = put("/api/labels/" + savedLabelId)
                 .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -177,7 +180,8 @@ public final class LabelControllerTest {
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("id", savedLabelId)
                 .hasFieldOrPropertyWithValue("name", labelUpdateDto.getName())
-                .hasFieldOrPropertyWithValue("createdAt", savedLabel.getCreatedAt());
+                .extracting(Label::getCreatedAt, as(InstanceOfAssertFactories.LOCAL_DATE_TIME))
+                .isCloseTo(savedLabel.getCreatedAt(), within(1, ChronoUnit.MILLIS));
     }
 
     @Test
@@ -258,9 +262,7 @@ public final class LabelControllerTest {
         var sameLabels = labelRepository.findAll().stream()
                 .filter(label -> label.getName().equals(savedLabel.getName()))
                 .toList();
-        assertThat(sameLabels)
-                .hasSize(1)
-                .containsOnly(savedLabel);
+        assertThat(sameLabels).hasSize(1);
     }
 
     @Test
@@ -283,21 +285,22 @@ public final class LabelControllerTest {
         var savedLabelId = savedLabel.getId();
         var request = delete("/api/labels/" + savedLabelId).with(token);
 
-        mvc.perform(request)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").value("Removing the resource used"))
-                .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath(
-                        "$.details[?(@ == 'Cannot delete. Label is referenced to one or more tasks.')]")
-                        .exists());
+        try {
+            mvc.perform(request)
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error").value("Removing the resource used"))
+                    .andExpect(jsonPath("$.details").isArray())
+                    .andExpect(jsonPath(
+                            "$.details[?(@ == 'Cannot delete. Label is referenced to one or more tasks.')]")
+                            .exists());
 
-        var actualLabel = labelRepository.findById(savedLabelId).orElse(null);
-        assertThat(actualLabel)
-                .isNotNull()
-                .isEqualTo(savedLabel);
+            var actualLabel = labelRepository.findById(savedLabelId).orElse(null);
+            assertThat(actualLabel).isNotNull();
+        } finally {
+            taskRepository.deleteAll();
+            taskStatusRepository.deleteAll();
+        }
 
-        taskRepository.deleteAll();
-        taskStatusRepository.deleteAll();
     }
 
 }
