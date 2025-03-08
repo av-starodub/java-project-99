@@ -34,16 +34,13 @@ public final class LabelController {
     @PostMapping("/labels")
     @ResponseStatus(HttpStatus.CREATED)
     public LabelResponseDto create(@Valid @RequestBody LabelCreateDto createDto) {
-        System.out.println("Controller Creating label " + createDto);
         var newLabel = labelService.create(createDto);
-        System.out.println("Controller saved Label " + newLabel);
         return labelMapper.domainTo(newLabel);
     }
 
     @GetMapping("/labels")
     public ResponseEntity<List<LabelResponseDto>> index() {
         var labels = labelService.getAll();
-        System.out.println("LABELS: " + labels);
         var labelDtos = labels.stream()
                 .map(labelMapper::domainTo)
                 .toList();
@@ -63,8 +60,12 @@ public final class LabelController {
     @PutMapping("/labels/{id}")
     @ResponseStatus(HttpStatus.OK)
     public LabelResponseDto update(@PathVariable Long id, @Valid @RequestBody LabelUpdateDto updateDto) {
+        System.out.println("Controller updating label " + updateDto);
         return labelService.update(id, updateDto)
-                .map(labelMapper::domainTo)
+                .map(label -> {
+                    System.out.println("Controller updating label " + label);
+                    return labelMapper.domainTo(label);
+                })
                 .orElseThrow(() -> new ResourceNotFoundException("Label with id=%s not found".formatted(id)));
     }
 

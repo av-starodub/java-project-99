@@ -172,14 +172,15 @@ public final class LabelControllerTest {
         mvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(savedLabelId))
-                .andExpect(jsonPath("$.name").value(labelUpdateDto.getName()))
+                .andExpect(jsonPath("$.name").value("updated"))
                 .andExpect(jsonPath("$.createdAt").value(expectedCreatedAt));
 
-        var updatedLabel = labelRepository.findByName(labelUpdateDto.getName()).orElse(null);
+
+        var updatedLabel = labelRepository.findByName("updated").orElse(null);
         assertThat(updatedLabel)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("id", savedLabelId)
-                .hasFieldOrPropertyWithValue("name", labelUpdateDto.getName())
+                .hasFieldOrPropertyWithValue("name", "updated")
                 .extracting(Label::getCreatedAt, as(InstanceOfAssertFactories.LOCAL_DATE_TIME))
                 .isCloseTo(savedLabel.getCreatedAt(), within(1, ChronoUnit.MILLIS));
     }

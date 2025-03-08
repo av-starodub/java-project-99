@@ -21,7 +21,7 @@ public final class LabelMapper extends AbstractMapper<Label, LabelCreateDto, Lab
 
     @Override
     public Label update(Label entity, LabelUpdateDto dto) {
-        entity.setName(dto.getName());
+        dto.getName().ifPresent(entity::setName);
         return entity;
     }
 
