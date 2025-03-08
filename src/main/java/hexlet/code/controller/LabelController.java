@@ -34,7 +34,9 @@ public final class LabelController {
     @PostMapping("/labels")
     @ResponseStatus(HttpStatus.CREATED)
     public LabelResponseDto create(@Valid @RequestBody LabelCreateDto createDto) {
+        System.out.println("Controller Creating label " + createDto);
         var newLabel = labelService.create(createDto);
+        System.out.println("Controller saved Label " + newLabel);
         return labelMapper.domainTo(newLabel);
     }
 

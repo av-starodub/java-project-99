@@ -4,9 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
+@ToString
 public final class LabelCreateDto {
 
     public static final int MIN_NAME_LENGTH = 3;
