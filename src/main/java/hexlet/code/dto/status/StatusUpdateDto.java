@@ -6,10 +6,10 @@ import lombok.Builder;
 
 import java.util.Optional;
 
-import static hexlet.code.model.TaskStatus.NAME_MIN_LENGTH;
-import static hexlet.code.model.TaskStatus.NAME_SIZE_ERROR_MESSAGE;
-import static hexlet.code.model.TaskStatus.SLUG_MIN_LENGTH;
-import static hexlet.code.model.TaskStatus.SLUG_SIZE_ERROR_MESSAGE;
+import static hexlet.code.dto.status.StatusCreateDto.NAME_MIN_LENGTH;
+import static hexlet.code.dto.status.StatusCreateDto.NAME_SIZE_ERROR_MESSAGE;
+import static hexlet.code.dto.status.StatusCreateDto.SLUG_MIN_LENGTH;
+import static hexlet.code.dto.status.StatusCreateDto.SLUG_SIZE_ERROR_MESSAGE;
 
 @Builder
 public final class StatusUpdateDto extends UpdateDto {

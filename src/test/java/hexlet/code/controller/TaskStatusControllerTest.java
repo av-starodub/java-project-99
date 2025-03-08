@@ -237,7 +237,7 @@ public final class TaskStatusControllerTest {
                 .andExpect(jsonPath("$.error").value("Input data validation failed"))
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@ == 'Name is required')]").exists())
-                .andExpect(jsonPath("$.details[?(@ == '" + TaskStatus.SLUG_SIZE_ERROR_MESSAGE + "')]").exists());
+                .andExpect(jsonPath("$.details[?(@ == '" + StatusCreateDto.SLUG_SIZE_ERROR_MESSAGE + "')]").exists());
 
         assertThat(repository.findBySlug(invalidData.getSlug())).isEmpty();
     }
@@ -262,7 +262,7 @@ public final class TaskStatusControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Input data validation failed"))
                 .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == '" + TaskStatus.SLUG_SIZE_ERROR_MESSAGE + "')]").exists());
+                .andExpect(jsonPath("$.details[?(@ == '" + StatusCreateDto.SLUG_SIZE_ERROR_MESSAGE + "')]").exists());
 
         var expectedSlug = savedStatus.getSlug();
         var actualStatus = taskStatusService.getBySlug(expectedSlug).orElse(null);

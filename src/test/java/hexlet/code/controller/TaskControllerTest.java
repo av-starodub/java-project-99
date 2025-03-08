@@ -202,7 +202,7 @@ public final class TaskControllerTest {
                 .getContentAsString();
 
         var createdAt = JsonPath.<String>read(body, "$.createdAt");
-        assertThat(testTask.getCreatedAt()).isCloseTo(createdAt, within(1, ChronoUnit.MILLIS));
+        assertThat(testTask.getCreatedAt()).isCloseTo(createdAt, within(1, ChronoUnit.SECONDS));
 
     }
 
@@ -244,7 +244,7 @@ public final class TaskControllerTest {
                 .getContentAsString();
 
         var actualCreatedAt = JsonPath.<String>read(body, "$.createdAt");
-        assertThat(testTask.getCreatedAt()).isCloseTo(actualCreatedAt, within(1, ChronoUnit.MILLIS));
+        assertThat(testTask.getCreatedAt()).isCloseTo(actualCreatedAt, within(1, ChronoUnit.SECONDS));
 
         var updatedTask = taskRepository.findWithRelationsById(testTask.getId()).orElse(null);
         assertThat(updatedTask)

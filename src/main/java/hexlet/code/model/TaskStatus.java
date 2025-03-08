@@ -30,14 +30,6 @@ import java.time.LocalDateTime;
 @Table(name = "task_statuses")
 public final class TaskStatus implements BaseEntity {
 
-    public static final int NAME_MIN_LENGTH = 1;
-
-    public static final int SLUG_MIN_LENGTH = 1;
-
-    public static final String NAME_SIZE_ERROR_MESSAGE = "Name must be at least " + NAME_MIN_LENGTH + " character long";
-
-    public static final String SLUG_SIZE_ERROR_MESSAGE = "Slug must be at least " + SLUG_MIN_LENGTH + " character long";
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

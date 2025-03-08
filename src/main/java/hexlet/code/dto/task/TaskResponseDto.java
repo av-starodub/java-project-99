@@ -1,5 +1,6 @@
 package hexlet.code.dto.task;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import hexlet.code.dto.base.ResponseDto;
 import lombok.Builder;
@@ -18,6 +19,7 @@ public class TaskResponseDto extends ResponseDto {
 
     private Long index;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     @JsonProperty("assignee_id")
