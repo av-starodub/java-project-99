@@ -1,6 +1,7 @@
 package hexlet.code.dto.task;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import hexlet.code.dto.base.CreateDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -12,7 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class TaskCreateDto {
+public class TaskCreateDto extends CreateDto {
 
     @NotBlank
     private String title;

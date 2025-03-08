@@ -1,6 +1,7 @@
 package hexlet.code.dto.task;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import hexlet.code.dto.base.UpdateDto;
 import lombok.Builder;
 import lombok.Setter;
 
@@ -9,7 +10,7 @@ import java.util.Optional;
 
 @Setter
 @Builder
-public final class TaskUpdateDto {
+public final class TaskUpdateDto extends UpdateDto {
 
     private String title;
 

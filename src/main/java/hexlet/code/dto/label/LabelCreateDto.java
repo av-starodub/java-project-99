@@ -1,5 +1,6 @@
 package hexlet.code.dto.label;
 
+import hexlet.code.dto.base.CreateDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -11,7 +12,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @Getter
 @ToString
-public final class LabelCreateDto {
+public final class LabelCreateDto extends CreateDto {
 
     public static final int MIN_NAME_LENGTH = 3;
 

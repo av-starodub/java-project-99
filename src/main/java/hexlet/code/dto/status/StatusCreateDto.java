@@ -1,5 +1,6 @@
 package hexlet.code.dto.status;
 
+import hexlet.code.dto.base.CreateDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
@@ -12,7 +13,7 @@ import static hexlet.code.model.TaskStatus.SLUG_SIZE_ERROR_MESSAGE;
 
 @Getter
 @Builder
-public final class StatusCreateDto {
+public final class StatusCreateDto extends CreateDto {
 
     @NotBlank(message = "Name is required")
     @Size(min = NAME_MIN_LENGTH, message = NAME_SIZE_ERROR_MESSAGE)

@@ -1,5 +1,6 @@
 package hexlet.code.dto.status;
 
+import hexlet.code.dto.base.UpdateDto;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
@@ -11,7 +12,7 @@ import static hexlet.code.model.TaskStatus.SLUG_MIN_LENGTH;
 import static hexlet.code.model.TaskStatus.SLUG_SIZE_ERROR_MESSAGE;
 
 @Builder
-public final class StatusUpdateDto {
+public final class StatusUpdateDto extends UpdateDto {
 
     @Size(min = NAME_MIN_LENGTH, message = NAME_SIZE_ERROR_MESSAGE)
     private String name;

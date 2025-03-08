@@ -36,7 +36,7 @@ import static java.util.Objects.nonNull;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "tasks")
-public final class Task {
+public final class Task implements BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

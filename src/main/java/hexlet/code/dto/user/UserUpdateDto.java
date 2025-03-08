@@ -1,6 +1,7 @@
 package hexlet.code.dto.user;
 
 
+import hexlet.code.dto.base.UpdateDto;
 import jakarta.validation.constraints.Email;
 
 import jakarta.validation.constraints.Size;
@@ -9,7 +10,7 @@ import lombok.Setter;
 import java.util.Optional;
 
 @Setter
-public final class UserUpdateDto {
+public final class UserUpdateDto extends UpdateDto {
 
     public static final int MIN_PASSWORD_LENGTH = 3;
 

@@ -1,6 +1,7 @@
 package hexlet.code.dto.task;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import hexlet.code.dto.base.ResponseDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class TaskResponseDto {
+public class TaskResponseDto extends ResponseDto {
 
     private Long id;
 

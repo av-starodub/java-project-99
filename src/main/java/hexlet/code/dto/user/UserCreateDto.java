@@ -1,5 +1,6 @@
 package hexlet.code.dto.user;
 
+import hexlet.code.dto.base.CreateDto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -10,7 +11,7 @@ import lombok.Builder;
 @Getter
 @Setter
 @Builder
-public class UserCreateDto {
+public class UserCreateDto extends CreateDto {
 
     public static final int MIN_PASSWORD_LENGTH = 3;
 

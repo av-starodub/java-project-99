@@ -28,7 +28,7 @@ import java.time.LocalDateTime;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "task_statuses")
-public final class TaskStatus {
+public final class TaskStatus implements BaseEntity {
 
     public static final int NAME_MIN_LENGTH = 1;
 
