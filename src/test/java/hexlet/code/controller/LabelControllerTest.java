@@ -13,7 +13,6 @@ import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.util.ModelGenerator;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.instancio.Instancio;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,17 +70,13 @@ public final class LabelControllerTest {
 
     @BeforeEach
     void setUp() {
+        labelRepository.deleteAll();
         mvc = MockMvcBuilders.webAppContextSetup(wac)
                 .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
                 .apply(springSecurity())
                 .build();
         token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
         testLabel = new Label("test");
-    }
-
-    @AfterEach
-    void tearDown() {
-        labelRepository.deleteAll();
     }
 
     @Test

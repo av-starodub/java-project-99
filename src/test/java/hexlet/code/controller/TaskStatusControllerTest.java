@@ -13,7 +13,6 @@ import hexlet.code.service.TaskStatusService;
 import hexlet.code.util.ModelGenerator;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.instancio.Instancio;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -73,17 +72,13 @@ public final class TaskStatusControllerTest {
 
     @BeforeEach
     void setup() {
+        repository.deleteAll();
         mvc = MockMvcBuilders.webAppContextSetup(wac)
                 .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
                 .apply(springSecurity())
                 .build();
         token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
         testStatus = Instancio.of(modelGenerator.getTaskStatusModel()).create();
-    }
-
-    @AfterEach
-    void tearDown() {
-        repository.deleteAll();
     }
 
     @Test

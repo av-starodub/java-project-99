@@ -12,7 +12,6 @@ import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
 import hexlet.code.util.ModelGenerator;
 import org.instancio.Instancio;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -76,6 +75,9 @@ public final class TaskControllerTest {
 
     @BeforeEach
     void setup() {
+        taskRepository.deleteAll();
+        userRepository.deleteAll();
+        statusRepository.deleteAll();
         mvc = MockMvcBuilders.webAppContextSetup(wac)
                 .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
                 .apply(springSecurity())
@@ -93,13 +95,6 @@ public final class TaskControllerTest {
         task.setTaskStatus(testStatus);
         task.setAssignee(testUser);
         testTask = taskRepository.save(task);
-    }
-
-    @AfterEach
-    void tearDown() {
-        taskRepository.deleteAll();
-        userRepository.deleteAll();
-        statusRepository.deleteAll();
     }
 
     @Test
