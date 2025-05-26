@@ -13,9 +13,11 @@ import hexlet.code.service.TaskStatusService;
 import hexlet.code.util.ModelGenerator;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,6 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public final class TaskStatusControllerTest {
 
     @Autowired
@@ -79,6 +82,11 @@ public final class TaskStatusControllerTest {
                 .build();
         token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
         testStatus = Instancio.of(modelGenerator.getTaskStatusModel()).create();
+    }
+
+    @AfterAll
+    void tearDown() {
+        repository.deleteAll();
     }
 
     @Test

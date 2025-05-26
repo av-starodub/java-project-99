@@ -7,9 +7,11 @@ import hexlet.code.repository.UserRepository;
 import hexlet.code.service.UserService;
 import hexlet.code.util.ModelGenerator;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,6 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public final class UserControllerTest {
 
     @Autowired
@@ -75,6 +78,11 @@ public final class UserControllerTest {
         token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
         var testUserData = Instancio.of(modelGenerator.getUserModel()).create();
         testUser = userRepository.save(testUserData);
+    }
+
+    @AfterAll
+    void tearDown() {
+        userRepository.deleteAll();
     }
 
     @Test
