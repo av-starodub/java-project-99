@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.nio.file.AccessDeniedException;
-import java.util.List;
 
 @ControllerAdvice
 public final class GlobalExceptionHandler {
@@ -25,28 +24,28 @@ public final class GlobalExceptionHandler {
                 .toList();
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorDto("Input data validation failed", details));
+                .body(ErrorDto.of("Input data validation failed", details));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorDto> handleResourceNotFoundException(ResourceNotFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorDto("Resource not found", List.of(ex.getMessage())));
+                .body(ErrorDto.of("Resource not found", ex.getMessage()));
     }
 
     @ExceptionHandler(UniquenessViolationException.class)
     public ResponseEntity<ErrorDto> handleUniquenessViolation(UniquenessViolationException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorDto("Uniqueness violation", ex.getDetails()));
+                .body(ErrorDto.of("Uniqueness violation", ex.getDetails()));
     }
 
     @ExceptionHandler(ResourceInUseDeleteException.class)
     public ResponseEntity<ErrorDto> handleResourceInUseDeleteException(ResourceInUseDeleteException ex) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .body(new ErrorDto("Removing the resource used", List.of(ex.getMessage())));
+                .body(ErrorDto.of("Removing the resource used", ex.getMessage()));
     }
 
 
@@ -54,21 +53,21 @@ public final class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> unauthorized(AuthenticationException ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(new ErrorDto("Authentication error", List.of(ex.getMessage())));
+                .body(ErrorDto.of("Authentication error", ex.getMessage()));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorDto> accessDeniedException(AccessDeniedException ex) {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .body(new ErrorDto("Access denied", List.of(ex.getMessage())));
+                .body(ErrorDto.of("Access denied", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDto> handleUnexpectedError(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorDto("Unexpected error", List.of(ex.getMessage())));
+                .body(ErrorDto.of("Unexpected error", ex.getMessage()));
     }
 
 }
