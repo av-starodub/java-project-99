@@ -66,7 +66,7 @@ public final class UserControllerTest {
 
     private User testUser;
 
-    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
+    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor testUserToken;
 
     @BeforeEach
     void setUp() {
@@ -75,8 +75,8 @@ public final class UserControllerTest {
                 .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
                 .apply(springSecurity())
                 .build();
-        token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
         var testUserData = Instancio.of(modelGenerator.getUserModel()).create();
+        testUserToken = jwt().jwt(builder -> builder.subject(testUserData.getEmail()));
         testUser = userRepository.save(testUserData);
     }
 
@@ -91,7 +91,7 @@ public final class UserControllerTest {
         var inputUserData = Instancio.of(modelGenerator.getUserInputData()).create();
 
         var request = post("/api/users")
-                .with(token)
+                .with(testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(inputUserData));
         mvc.perform(request)
@@ -121,7 +121,7 @@ public final class UserControllerTest {
 
         Function<String, String> toPath = (key) -> "$[%d].%s".formatted(savedUserIdx, key);
 
-        var request = get("/api/users").with(token);
+        var request = get("/api/users").with(testUserToken);
         mvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -139,7 +139,7 @@ public final class UserControllerTest {
     @Test
     @DisplayName("Should handle GET by ID correctly")
     void checkShowById() throws Exception {
-        var request = get("/api/users/" + testUser.getId()).with(token);
+        var request = get("/api/users/" + testUser.getId()).with(testUserToken);
         mvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value(testUser.getFirstName()))
@@ -156,7 +156,7 @@ public final class UserControllerTest {
         var updatedUserData = Instancio.of(modelGenerator.getUserUpdatedData()).create();
 
         var request = put("/api/users/" + testUser.getId())
-                .with(token)
+                .with(testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updatedUserData));
 
@@ -188,7 +188,7 @@ public final class UserControllerTest {
     @Test
     @DisplayName("Should handle DELETE by ID correctly")
     void checkDeleteById() throws Exception {
-        var request = delete("/api/users/" + testUser.getId()).with(token);
+        var request = delete("/api/users/" + testUser.getId()).with(testUserToken);
         mvc.perform(request)
                 .andExpect(status().isNoContent());
         assertThat(userRepository.findById(testUser.getId())).isEmpty();
@@ -203,7 +203,7 @@ public final class UserControllerTest {
                 .build();
 
         var badRequest = post("/api/users")
-                .with(token)
+                .with(testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidInputData));
 
@@ -227,7 +227,7 @@ public final class UserControllerTest {
                 .build();
 
         var badRequest = post("/api/users")
-                .with(token)
+                .with(testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(inputUserData));
 
@@ -242,7 +242,7 @@ public final class UserControllerTest {
     @DisplayName("Should handle GET by ID when User not found correctly")
     void checkShowByIdNotFound() throws Exception {
         var invalidId = Long.MAX_VALUE;
-        var request = get("/api/users/" + invalidId).with(token);
+        var request = get("/api/users/" + invalidId).with(testUserToken);
         mvc.perform(request)
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Resource not found"))
@@ -259,7 +259,7 @@ public final class UserControllerTest {
                 .build();
 
         var badRequest = put("/api/users/" + testUser.getId())
-                .with(token)
+                .with(testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidDataToUpdate));
 
@@ -284,7 +284,7 @@ public final class UserControllerTest {
         var invalidId = Long.MAX_VALUE;
 
         var request = put("/api/users/" + invalidId)
-                .with(token)
+                .with(testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updatedUserData));
 

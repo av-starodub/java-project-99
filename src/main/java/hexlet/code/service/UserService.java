@@ -10,6 +10,7 @@ import hexlet.code.model.User;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public final class UserService {
+public class UserService {
 
     private final UserRepository userRepository;
 
@@ -50,6 +51,7 @@ public final class UserService {
         return userRepository.findById(id);
     }
 
+    @PreAuthorize("@userPermissionValidator.isOwner(#id)")
     public void deleteById(Long id) {
         if (taskRepository.existsByAssigneeId(id)) {
             throw new UserAssignedToTasksException("Cannot delete. User is assigned to one or more tasks.");
@@ -57,6 +59,7 @@ public final class UserService {
         userRepository.deleteById(id);
     }
 
+    @PreAuthorize("@userPermissionValidator.isOwner(#id)")
     public Optional<User> update(Long id, UserUpdateDto updateDto) {
         updateDto.getEmail().ifPresent(this::validateEmail);
 

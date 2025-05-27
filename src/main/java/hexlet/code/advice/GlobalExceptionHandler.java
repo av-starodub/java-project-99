@@ -7,12 +7,14 @@ import hexlet.code.exception.UniquenessViolationException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.nio.file.AccessDeniedException;
+import java.util.Optional;
 
 @ControllerAdvice
 public final class GlobalExceptionHandler {
@@ -50,17 +52,18 @@ public final class GlobalExceptionHandler {
 
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorDto> unauthorized(AuthenticationException ex) {
+    public ResponseEntity<ErrorDto> handleUnauthorized(AuthenticationException ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ErrorDto.of("Authentication error", ex.getMessage()));
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorDto> accessDeniedException(AccessDeniedException ex) {
+    @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
+    public ResponseEntity<ErrorDto> handleAccessDenied(AccessDeniedException ex) {
+        var message = Optional.ofNullable(ex.getMessage()).orElse("No details");
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .body(ErrorDto.of("Access denied", ex.getMessage()));
+                .body(ErrorDto.of("Access denied", message));
     }
 
     @ExceptionHandler(Exception.class)
