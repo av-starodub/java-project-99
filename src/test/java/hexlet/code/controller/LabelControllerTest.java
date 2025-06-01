@@ -250,8 +250,7 @@ public final class LabelControllerTest {
         var savedLabel = labelRepository.save(testLabel);
         assertThat(savedLabel).isNotNull();
 
-        var duplicateName = savedLabel.getName();
-        var createDtoWithDuplicateName = new LabelCreateDto(duplicateName);
+        var createDtoWithDuplicateName = new LabelCreateDto(savedLabel.getName());
         var badRequest = post("/api/labels")
                 .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -261,7 +260,7 @@ public final class LabelControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Uniqueness violation"))
                 .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == 'Label " + duplicateName + " already exists')]").exists());
+                .andExpect(jsonPath("$.details[?(@ == 'Duplicate value breaks unique constraint')]").exists());
 
         var sameLabels = labelRepository.findAll().stream()
                 .filter(label -> label.getName().equals(savedLabel.getName()))
@@ -295,7 +294,7 @@ public final class LabelControllerTest {
                     .andExpect(jsonPath("$.error").value("Removing the resource used"))
                     .andExpect(jsonPath("$.details").isArray())
                     .andExpect(jsonPath(
-                            "$.details[?(@ == 'Cannot delete. Label is referenced to one or more tasks.')]")
+                            "$.details[?(@ == 'Entity is referenced by other objects')]")
                             .exists());
 
             var actualLabel = labelRepository.findById(savedLabelId).orElse(null);

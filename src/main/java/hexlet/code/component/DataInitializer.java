@@ -47,7 +47,7 @@ public final class DataInitializer implements ApplicationRunner {
                     .forEach(taskStatusRepository::save);
 
             DefaultLabelType.getAllDefaultLabelNames().stream()
-                    .filter(name -> !labelRepository.existsByName(name))
+                    .filter(name -> labelRepository.findByName(name).isEmpty())
                     .map(Label::new)
                     .peek(System.out::println)
                     .forEach(labelRepository::save);

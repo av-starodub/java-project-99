@@ -4,7 +4,6 @@ import hexlet.code.component.TaskSpecificationBuilder;
 import hexlet.code.dto.task.TaskCreateDto;
 import hexlet.code.dto.task.TaskFilterDto;
 import hexlet.code.dto.task.TaskUpdateDto;
-import hexlet.code.exception.UniquenessViolationException;
 import hexlet.code.mapper.TaskMapper;
 import hexlet.code.model.Task;
 import hexlet.code.repository.TaskRepository;
@@ -43,12 +42,6 @@ public final class TaskService {
     }
 
     public Optional<Task> update(Long id, TaskUpdateDto updateDto) {
-        updateDto.getIndex().ifPresent(index -> {
-            if (taskRepository.existsByIndex(index)) {
-                throw new UniquenessViolationException(List.of("Index %d already exists".formatted(index)));
-            }
-        });
-
         return taskRepository.findById(id)
                 .map(task -> taskMapper.update(task, updateDto))
                 .map(taskRepository::save);

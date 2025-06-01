@@ -235,7 +235,7 @@ public final class UserControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Uniqueness violation"))
                 .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == 'Email " + duplicateEmail + " already exists')]").exists());
+                .andExpect(jsonPath("$.details[?(@ == 'Duplicate value breaks unique constraint')]").exists());
     }
 
     @Test

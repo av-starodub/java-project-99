@@ -296,8 +296,7 @@ public final class TaskStatusControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Uniqueness violation"))
                 .andExpect(jsonPath("$.details").isArray())
-                .andExpect(jsonPath("$.details[?(@ == 'Name " + duplicateName + " already exist')]").exists())
-                .andExpect(jsonPath("$.details[?(@ == 'Slug " + duplicateSlug + " already exist')]").exists());
+                .andExpect(jsonPath("$.details[?(@ == 'Duplicate value breaks unique constraint')]").exists());
 
         var expectedSlug = savedStatus.getSlug();
         var expectedName = savedStatus.getName();
@@ -326,7 +325,7 @@ public final class TaskStatusControllerTest {
                 .andExpect(jsonPath("$.error").value("Removing the resource used"))
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath(
-                        "$.details[?(@ == 'Cannot delete. TaskStatus is referenced to one or more tasks.')]")
+                        "$.details[?(@ == 'Entity is referenced by other objects')]")
                         .exists());
 
         var actualStatus = taskStatusService.getBySlug(savedStatus.getSlug()).orElse(null);
