@@ -28,6 +28,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -265,6 +266,65 @@ public final class TaskControllerTest {
         var request = delete("/api/tasks/" + existTaskId).with(token);
         mvc.perform(request).andExpect(status().isNoContent());
         assertThat(taskRepository.findById(existTaskId)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should handle invalid POST to create a new Task correctly")
+    void checkCreateWithInvalidData() throws Exception {
+        taskRepository.deleteAll();
+        var invalidData = TaskCreateDto.builder()
+                .title("")
+                .status("")
+                .taskLabelIds(Collections.singletonList(null))
+                .build();
+
+        var request = post("/api/tasks")
+                .with(token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidData));
+
+        mvc.perform(request)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Input data validation failed"))
+                .andExpect(jsonPath("$.details").isArray())
+                .andExpect(jsonPath("$.details[?(@ == 'Title is required to create a new task')]").exists())
+                .andExpect(jsonPath("$.details[?(@ == 'Status slug is required to create a new task')]").exists())
+                .andExpect(jsonPath("$.details[?(@ == '" + TaskCreateDto.LABEL_NULL_ERROR_MESSAGE + "')]").exists());
+
+        assertThat(taskRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should handle invalid PUT to update task correctly")
+    void checkUpdateWithInvalidData() throws Exception {
+        var updateDto = TaskUpdateDto.builder()
+                .title(" ")
+                .labelIds(Collections.singletonList(null))
+                .build();
+
+        var request = put("/api/tasks/" + testTask.getId())
+                .with(token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateDto));
+
+        var expectedTitle = testTask.getName();
+        var expectedLabels = testTask.getLabels();
+
+        mvc.perform(request)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Input data validation failed"))
+                .andExpect(jsonPath("$.details").isArray())
+                .andExpect(jsonPath("$.details[?(@ == 'The name should not consist only of spaces')]").exists())
+                .andExpect(jsonPath("$.details[?(@ == '" + TaskCreateDto.LABEL_NULL_ERROR_MESSAGE + "')]").exists());
+
+        var actualTask = taskRepository.findWithRelationsById(testTask.getId()).orElse(null);
+        assertThat(actualTask)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("name", expectedTitle);
+        var actualTaskLabels = actualTask.getLabels();
+        assertThat(actualTaskLabels)
+                .doesNotContainNull()
+                .hasSize(expectedLabels.size());
     }
 
 }

@@ -15,7 +15,9 @@ import java.util.List;
 @Builder
 public class TaskCreateDto extends CreateDto {
 
-    @NotBlank
+    public static final String LABEL_NULL_ERROR_MESSAGE = "Label id must not be null";
+
+    @NotBlank(message = "Title is required to create a new task")
     private String title;
 
     private Long index;
@@ -25,8 +27,9 @@ public class TaskCreateDto extends CreateDto {
     @JsonProperty("assignee_id")
     private Long assigneeId;
 
-    @NotNull
+    @NotBlank(message = "Status slug is required to create a new task")
     private String status;
 
-    private List<Long> taskLabelIds;
+    private List<@NotNull(message = LABEL_NULL_ERROR_MESSAGE) Long> taskLabelIds;
+
 }
