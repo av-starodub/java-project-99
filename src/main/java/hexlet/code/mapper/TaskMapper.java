@@ -13,6 +13,8 @@ import hexlet.code.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+
 @Service
 @RequiredArgsConstructor
 public final class TaskMapper extends AbstractMapper<Task, TaskCreateDto, TaskUpdateDto, TaskResponseDto> {
@@ -30,8 +32,8 @@ public final class TaskMapper extends AbstractMapper<Task, TaskCreateDto, TaskUp
                 .index(dto.getIndex())
                 .description(dto.getContent())
                 .taskStatus(findStatusBySlug(dto.getStatus()))
-                .assignee(findUserById(dto.getAssigneeId()))
-                .labels(labelService.getAllByIds(dto.getTaskLabelIds()))
+                .assignee(dto.getAssigneeId().map(this::findUserById).orElse(null))
+                .labels(dto.getTaskLabelIds().map(labelService::getAllByIds).orElse(Collections.emptySet()))
                 .build();
     }
 

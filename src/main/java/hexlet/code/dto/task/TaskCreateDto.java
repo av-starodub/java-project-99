@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -31,5 +32,13 @@ public class TaskCreateDto extends CreateDto {
     private String status;
 
     private List<@NotNull(message = LABEL_NULL_ERROR_MESSAGE) Long> taskLabelIds;
+
+    public Optional<Long> getAssigneeId() {
+        return Optional.ofNullable(assigneeId);
+    }
+
+    public Optional<List<Long>> getTaskLabelIds() {
+        return Optional.ofNullable(taskLabelIds);
+    }
 
 }

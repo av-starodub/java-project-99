@@ -40,4 +40,18 @@ class GlobalExceptionHandlerTest {
                 .matches(b -> b.getDetails().contains("Forbidden"));
     }
 
+    @Test
+    @DisplayName("Should return 500 and correct ErrorDto")
+    void checkHandleUnexpectedError() {
+        var ex = new RuntimeException("Error");
+
+        var response = handler.handleUnexpectedError(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+
+        var body = response.getBody();
+        assertThat(body).isNotNull()
+                .matches(b -> b.getError().equals("Unexpected error"))
+                .matches(b -> b.getDetails().contains("Error"));
+    }
+
 }

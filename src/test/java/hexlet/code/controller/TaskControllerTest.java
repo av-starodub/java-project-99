@@ -172,7 +172,7 @@ public final class TaskControllerTest {
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.title").value(taskCreateDto.getTitle()))
                 .andExpect(jsonPath("$.content").value(taskCreateDto.getContent()))
-                .andExpect(jsonPath("$.assignee_id").value(taskCreateDto.getAssigneeId()))
+                .andExpect(jsonPath("$.assignee_id").value(taskCreateDto.getAssigneeId().orElse(null)))
                 .andExpect(jsonPath("$.status").value(taskCreateDto.getStatus()))
                 .andExpect(jsonPath("$.createdAt").isNotEmpty())
                 .andReturn()
