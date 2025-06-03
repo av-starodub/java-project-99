@@ -6,7 +6,7 @@ plugins {
     checkstyle
     jacoco
     id("com.github.ben-manes.versions") version "0.48.0"
-    id("io.freefair.lombok") version "8.6"
+    id("io.freefair.lombok") version "8.13.1"
     id("org.springframework.boot") version "3.4.0"
     id("io.spring.dependency-management") version "1.1.6"
     id("io.sentry.jvm.gradle") version "5.3.0"
@@ -49,23 +49,15 @@ dependencies {
 
     implementation("com.h2database:h2:2.2.224")
     implementation("org.postgresql:postgresql:42.7.2")
+    implementation("org.openapitools:jackson-databind-nullable:0.2.6")
 
     implementation("org.instancio:instancio-junit:5.2.0")
     implementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.0")
     implementation("net.datafaker:datafaker:2.4.2")
 
-    implementation("org.openapitools:jackson-databind-nullable:0.2.6")
-    implementation("org.mapstruct:mapstruct:1.6.3")
-    implementation("org.mapstruct:mapstruct-processor:1.6.3")
-
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 
-    compileOnly("org.projectlombok:lombok")
-
-    annotationProcessor("org.projectlombok:lombok")
-    annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
