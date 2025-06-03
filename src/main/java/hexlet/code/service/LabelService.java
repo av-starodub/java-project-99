@@ -8,8 +8,12 @@ import hexlet.code.repository.LabelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Objects.nonNull;
 
 @RequiredArgsConstructor
 @Service
@@ -29,8 +33,11 @@ public final class LabelService {
     }
 
     public List<Label> getAll() {
-
         return repository.findAll();
+    }
+
+    public Set<Label> getAllByIds(List<Long> ids) {
+        return nonNull(ids) ? Set.copyOf(repository.findAllById(ids)) : Collections.emptySet();
     }
 
     public Optional<Label> update(Long id, LabelUpdateDto updateDto) {

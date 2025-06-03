@@ -1,10 +1,15 @@
 package hexlet.code.mapper;
 
-import hexlet.code.component.TaskDataProvider;
 import hexlet.code.dto.task.TaskCreateDto;
 import hexlet.code.dto.task.TaskResponseDto;
 import hexlet.code.dto.task.TaskUpdateDto;
+import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.model.Task;
+import hexlet.code.model.TaskStatus;
+import hexlet.code.model.User;
+import hexlet.code.service.LabelService;
+import hexlet.code.service.TaskStatusService;
+import hexlet.code.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +17,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public final class TaskMapper extends AbstractMapper<Task, TaskCreateDto, TaskUpdateDto, TaskResponseDto> {
 
-    private final TaskDataProvider taskDataProvider;
+    private final UserService userService;
+
+    private final TaskStatusService taskStatusService;
+
+    private final LabelService labelService;
 
     @Override
     public Task toDomain(TaskCreateDto dto) {
@@ -20,9 +29,9 @@ public final class TaskMapper extends AbstractMapper<Task, TaskCreateDto, TaskUp
                 .name(dto.getTitle())
                 .index(dto.getIndex())
                 .description(dto.getContent())
-                .taskStatus(taskDataProvider.getTaskStatusBySlug(dto.getStatus()))
-                .assignee(taskDataProvider.getUserById(dto.getAssigneeId()))
-                .labels(taskDataProvider.getLabelsByIds(dto.getTaskLabelIds()))
+                .taskStatus(findStatusBySlug(dto.getStatus()))
+                .assignee(findUserById(dto.getAssigneeId()))
+                .labels(labelService.getAllByIds(dto.getTaskLabelIds()))
                 .build();
     }
 
@@ -45,19 +54,20 @@ public final class TaskMapper extends AbstractMapper<Task, TaskCreateDto, TaskUp
         dto.getTitle().ifPresent(task::setName);
         dto.getIndex().ifPresent(task::setIndex);
         dto.getContent().ifPresent(task::setDescription);
-        dto.getAssigneeId().ifPresent(userId -> {
-            var user = taskDataProvider.getUserById(userId);
-            task.setAssignee(user);
-        });
-        dto.getStatus().ifPresent(statusSlug -> {
-            var taskStatus = taskDataProvider.getTaskStatusBySlug(statusSlug);
-            task.setTaskStatus(taskStatus);
-        });
-        dto.getLabelIds().ifPresent(labelIds -> {
-            var taskLabels = taskDataProvider.getLabelsByIds(labelIds);
-            task.setLabels(taskLabels);
-        });
+        dto.getAssigneeId().ifPresent(userId -> task.setAssignee(findUserById(userId)));
+        dto.getStatus().ifPresent(statusSlug -> task.setTaskStatus(findStatusBySlug(statusSlug)));
+        dto.getLabelIds().ifPresent(labelIds -> task.setLabels(labelService.getAllByIds(labelIds)));
         return task;
+    }
+
+    private User findUserById(Long id) {
+        return userService.getById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id=%d not found".formatted(id)));
+    }
+
+    private TaskStatus findStatusBySlug(String slug) {
+        return taskStatusService.getBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("TaskStatus with slug=%s not found".formatted(slug)));
     }
 
 }
